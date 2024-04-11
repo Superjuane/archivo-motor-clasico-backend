@@ -1,0 +1,86 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.2'
+	id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.jolivan.archivomotorclasico'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '21'
+}
+
+repositories {
+	mavenCentral()
+}
+
+//dependencies {
+//	implementation ('org.springframework.boot:spring-boot-starter-web'){
+//		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+//		exclude group: 'log4j', module: 'log4j'
+//	}
+//	implementation ('com.fasterxml.jackson.core:jackson-databind'){
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//	}
+//	implementation ('io.weaviate:client:4.0.0'){
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//	}
+//	implementation ('commons-io:commons-io:2.15.1'){
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//	}
+//	testImplementation ('org.springframework.boot:spring-boot-starter-test'){
+//		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+//		exclude group: 'log4j', module: 'log4j'
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//
+//	}
+//	testImplementation 'junit:junit:4.13.1'
+//	implementation ('org.neo4j:neo4j:5.18.1'){
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//	}
+//	implementation ('org.springframework.data:spring-data-neo4j'){
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//	}
+//	annotationProcessor 'org.projectlombok:lombok'
+//	compileOnly 'org.projectlombok:lombok'
+//}
+
+
+dependencies {
+	implementation ('org.springframework.boot:spring-boot-starter-web')
+
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'io.weaviate:client:4.0.0'
+	implementation 'commons-io:commons-io:2.15.1'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'junit:junit:4.13.1'
+	implementation 'org.neo4j:neo4j-ogm:4.0.10'
+//	implementation ('org.neo4j:neo4j:5.18.1'){
+//		exclude group: 'commons-logging', module: 'commons-logging'
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+//	}
+	implementation ('org.springframework.data:spring-data-neo4j') {
+//		exclude group: 'commons-logging', module: 'commons-logging'
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+	}
+	annotationProcessor 'org.projectlombok:lombok'
+	compileOnly 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+
+//configurations {
+//	configureEach {
+////		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+//		exclude group: 'ch.qos.logback', module: 'logback-classic'
+////		exclude group: 'org.neo4j', module: 'log4j-to-slf4j'
+////		exclude group: 'commons-logging', module: 'commons-logging'
+//	}
+//}
+//configurations {
+//	runtime.exclude group: 'ch.qos.logback', module: 'logback-classic'
+//}
