@@ -1,6 +1,7 @@
 package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers;
 
 import com.google.gson.internal.LinkedTreeMap;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.IdIsNullException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.WeaviateResultConverter;
 import com.jolivan.archivomotorclasicobackend.VectorDatabaseClientFactory;
 import io.weaviate.client.WeaviateClient;
@@ -34,7 +35,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
         List<Map<String, Object>> result = new ArrayList<>();
 
         Field title = Field.builder()
-                .name("image text")
+                .name("image title description")
                 .build();
         Field _additional = Field.builder()
                 .name("_additional")
@@ -44,7 +45,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
 
         Result<GraphQLResponse> DBresult = client.graphQL()
                 .get()
-                .withClassName("Magazine")
+                .withClassName("Resource")
                 .withFields(title, _additional)
                 .run();
 
@@ -62,7 +63,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
 //        Object r = DBresult.getResult().getData();
 //        LinkedTreeMap<?,?> rl = (LinkedTreeMap<?,?>) r;
 //        rl = (LinkedTreeMap<?,?>) rl.get("Get");
-//        ArrayList<?> resultList = (ArrayList<?>) rl.get("Magazine");
+//        ArrayList<?> resultList = (ArrayList<?>) rl.get("Resource");
 //        for (Object o : resultList) {
 //
 //            Map<String, Object> resource = new HashMap<>();
@@ -98,7 +99,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
 
         Result<GraphQLResponse> queryResult = client.graphQL()
                 .get()
-                .withClassName("Magazine")
+                .withClassName("Resource")
                 .withFields(_additional)
 //                .withNearText(explore)
                 .run();
@@ -112,12 +113,13 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
     }
 
     @Override
-    public Map<String, Object> getResourceById(String id) throws Throwable {
+    public Map<String, Object> getResourceById(String id) throws IdIsNullException, Throwable {
+        if(id == null) throw new IdIsNullException("No ID for resource request in ResourceVectorDatabaseRepositoryWeaviateAdapter.getResourceById");
 
     Map<String, Object> resultMap = new HashMap<>();
 
     Result<List<WeaviateObject>> DBresult = client.data().objectsGetter()
-            .withClassName("Magazine")
+            .withClassName("Resource")
             .withID(id)
             .run();
 
@@ -169,7 +171,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
         NearImageArgument.NearImageArgumentBuilder nearImageArgumentBuilder = NearImageArgument.builder().image(image);
 
         Field title = Field.builder()
-                .name("text")
+                .name("title description")
                 .build();
         Field _additional = Field.builder()
                 .name("_additional")
@@ -179,7 +181,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
                 }).build();
 
         Result<GraphQLResponse> DBresultRaw = client.graphQL().get()
-                .withClassName("Magazine")
+                .withClassName("Resource")
                 .withNearImage(nearImageArgumentBuilder.build())
                 .withFields(title, _additional)
                 .withLimit(limit)
@@ -197,7 +199,8 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
     public Map<String, Object> insertResource(Map<String, Object> data) {
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put("text", data.get("text"));
+        properties.put("title", data.get("title"));
+        properties.put("description", data.get("description"));
         if(data.get("image").toString().startsWith("data:image/jpeg;base64,")){
             data.put("image", data.get("image").toString().replace("data:image/jpeg;base64,", ""));
         }
@@ -206,7 +209,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
 
         Result<WeaviateObject> DBresult = client.data()
                 .creator()
-                .withClassName("Magazine")
+                .withClassName("Resource")
                 .withProperties(properties)
                 .run();
 
@@ -228,6 +231,8 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
             resultMap.put("additional", object.getAdditional());
             resultMap.put("vector", object.getVector());
             resultMap.put("vectorWeights", object.getVectorWeights());
+
+        Map<String, Object> DBresultMap = WeaviateResultConverter.WeaviateObjectToMap(DBresult.getResult());
 
         return resultMap;
     }

@@ -1,5 +1,6 @@
 package com.jolivan.archivomotorclasicobackend.Resource.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.*;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceFormToResourceConverter;
 import com.jolivan.archivomotorclasicobackend.Utils.Base64FileConversor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,9 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.List;
 
 
-import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.Log;
+import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.*;
 
 @RestController
 public class ResourceController {
@@ -40,7 +42,6 @@ public class ResourceController {
         try {
             resource = resourceRepository.getResource(requestId);
         } catch (Throwable e) {
-            Log("!! Error: "+e.getMessage());
             return resourceRepository.blank();
         }
 
@@ -72,7 +73,7 @@ public class ResourceController {
 
         if(noimage.isPresent() && noimage.get()){
             for(Resource r : resources){
-                r.setImage("noImage");
+                if(r.getImage() != null)r.setImage("noImage");
             }
         }
         return resources;
@@ -81,11 +82,11 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @PostMapping(value = "/resources"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
-    public ResponseEntity<Resource> postResource(@RequestBody SimpleImageForm simpleImageForm) {
-        Resource newResource = new Resource();
+    //TODO: user authentication
+    public ResponseEntity<Resource> postResource(@RequestBody ResourceRequestDTO resourceRequestDTO) {
+        Resource newResource = ResourceFormToResourceConverter.toResource(resourceRequestDTO);
 
-        newResource.setTitle(simpleImageForm.getText());
-        newResource.setImageUrl(simpleImageForm.getImage());
+
 
         Resource result = resourceRepository.insertResource(newResource);
 
@@ -108,17 +109,17 @@ public class ResourceController {
 
 
     //!========================================== TESTS ==========================================
-    @CrossOrigin(origins = URL)
-    @PostMapping(value = "/resources/test/post"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
-    public ResponseEntity<Resource> postResource(@RequestBody ImageForm imageForm) {
-        System.out.println("------------------ POSTING RESOURCE ------------------");
-        System.out.println(imageForm.getImage());
-        System.out.println(imageForm.getTitle());
-        System.out.println(imageForm.getDescription());
-        System.out.println(imageForm.getCreator());
-        System.out.println("------------------------------------------------------");
-        return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.OK);
-    }
+//    @CrossOrigin(origins = URL)
+//    @PostMapping(value = "/resources/test/post"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
+//    public ResponseEntity<Resource> postResourceTest(@RequestBody ImageForm imageForm) {
+//        System.out.println("------------------ POSTING RESOURCE ------------------");
+//        System.out.println(imageForm.getImage());
+//        System.out.println(imageForm.getTitle());
+//        System.out.println(imageForm.getDescription());
+//        System.out.println(imageForm.getCreator());
+//        System.out.println("------------------------------------------------------");
+//        return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.OK);
+//    }
 
     @GetMapping("/resources/test/noimage")
     List<Resource> getResourcesNoImageDevelop(@RequestParam(name = "page") Optional<String> page, @RequestParam(name = "size") Optional<String> size) {

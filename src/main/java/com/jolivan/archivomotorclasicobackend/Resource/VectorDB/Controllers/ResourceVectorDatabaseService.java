@@ -1,7 +1,11 @@
 package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers;
 
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabase;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.IdIsNullException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.ImageAlredyExistsException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceVectorDatabaseToResource;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.WeaviateResultConverter;
 import com.jolivan.archivomotorclasicobackend.Utils.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,13 +27,15 @@ public class ResourceVectorDatabaseService {
 
     public ResourceVectorDatabase getResource(String id){
 
+        if(id == null) throw new IdIsNullException("Id is null");
+
         ResourceVectorDatabase resource = new ResourceVectorDatabase();
         Map<String, Object> queryResult;
 
         try {
             queryResult = dbRepository.getResourceById(id);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            return resource;
         }
 
         //ERROR HANDLING
@@ -43,9 +49,14 @@ public class ResourceVectorDatabaseService {
         }
 
 
-        //GETTING DATA
-        String textResult = queryResult.get("text").toString();
+        //SETTING DATA
+        resource.setID(id);
+
+        String textResult = queryResult.get("title").toString();
         resource.setTitle(textResult);
+
+        String descriptionResult = queryResult.get("description").toString();
+        resource.setDescription(descriptionResult);
 
         String imageResult = queryResult.get("image").toString();
         resource.setImage(imageResult);
@@ -70,7 +81,8 @@ public class ResourceVectorDatabaseService {
         for (Map<String, Object> r : queryResult) {
             ResourceVectorDatabase resource = new ResourceVectorDatabase();
             resource.setID((String) r.get("id"));
-            resource.setTitle((String) r.get("text"));
+            resource.setTitle((String) r.get("title"));
+            resource.setDescription((String) r.get("description"));
             resource.setImage((String) r.get("image"));
 
             resources.add(resource);
@@ -90,44 +102,43 @@ public class ResourceVectorDatabaseService {
 
     public ResourceVectorDatabase addResource(ResourceVectorDatabase newResourceVector) throws ImageAlredyExistsException {
         Map<String, Object> data = new HashMap<>();
-        data.put("text", newResourceVector.getTitle());
+        data.put("title", newResourceVector.getTitle());
+        data.put("description", newResourceVector.getDescription());
         data.put("image", newResourceVector.getImage());
 
-        if(isImageAlredyInDatabase(newResourceVector.getImage())) {
-            throw new ImageAlredyExistsException("Image already in database");
-        }
-
-        Map<String, Object> queryResult;
-//        try {
-            queryResult = dbRepository.insertResource(data);
-//        } catch (Throwable e) {
-//            Log("!! Error: "+e.getMessage());
-//            return null;
-//        }
+        Map<String, Object> queryResult = dbRepository.insertResource(data);
 
         ResourceVectorDatabase resource = new ResourceVectorDatabase();
         resource.setID((String) queryResult.get("id"));
-        resource.setTitle((String) queryResult.get("text"));
-        resource.setImage((String) queryResult.get("image"));
+        resource.setTitle((String)((HashMap) queryResult.get("properties")).get("title"));
+        resource.setDescription((String)((HashMap) queryResult.get("properties")).get("description"));
+        resource.setImage((String)((HashMap) queryResult.get("properties")).get("image"));
 
         return resource;
     }
 
-    public boolean isImageAlredyInDatabase(String image) {
+
+    /**
+     * Check if image is already in database
+     * @param image in base64 format
+     * @return id of the resource if image is already in database, null otherwise
+     */
+
+    public String isImageAlredyInDatabase(String image) {
         try{
             List<Map<String, Object>> queryResult = dbRepository.getResourcesByImageSimilarity(image, 1);
             for(Map<String, Object> r : queryResult){
                 //if distance is less than 3.5762787E-5 (because if image is the same, distance == 3.5762787E-7)
                 if(Double.compare((double)r.get("distance"), 3.5762787E-5) == -1 ) {
                     System.out.println("Image already in database");
-                    return true;
+                    return (String) r.get("id");
                 }
             }
         } catch (Throwable e) {
             Log("Error in --> ResourceVectorDatabaseService.isImageAlredyInDatabase: "+e.getMessage());
         }
 
-        return false;
+        return null;
     }
 
 }

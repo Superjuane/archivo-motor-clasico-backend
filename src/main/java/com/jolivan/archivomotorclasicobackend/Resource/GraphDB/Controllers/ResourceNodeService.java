@@ -59,14 +59,13 @@ public class ResourceNodeService {
         return r;
     }
 
-    public ResourceNode addResourceNode( ResourceNode resourceNode){
+    public ResourceNode addResourceNode(ResourceNode resourceNode){
         System.out.println("Adding resource node");
-        //TODO: add the result as STATE PENDING
         return resourceNodeRepository.save(resourceNode);
     }
 
     public ResourceNode updateResourceNode(ResourceNode resourceNode)  {
-        Optional<ResourceNode> resourceNodeFromDB=  resourceNodeRepository.findById(Long.valueOf(resourceNode.getResourceID()));
+        Optional<ResourceNode> resourceNodeFromDB =  resourceNodeRepository.findById(Long.valueOf(resourceNode.getResourceID()));
         if(resourceNodeFromDB.isPresent()){
             ResourceNode resourceNodeFromDBVal = resourceNodeFromDB.get();
             resourceNodeFromDBVal.setResourceID(resourceNode.getResourceID());
@@ -84,4 +83,16 @@ public class ResourceNodeService {
         resourceNodeRepository.deleteById(id);
     }
 
+    public ResourceNode updateResourceNodeId(Long queryId, String newResourceId) {
+        Optional<ResourceNode> resourceNodeFromDB =  resourceNodeRepository.findById(queryId);
+        if(resourceNodeFromDB.isPresent()){
+            ResourceNode resourceNodeFromDBVal = resourceNodeFromDB.get();
+            resourceNodeFromDBVal.setResourceID(newResourceId);
+            resourceNodeFromDBVal.setState("COMPLETED");
+            resourceNodeRepository.save(resourceNodeFromDBVal);
+        }else{
+            return null;
+        }
+        return resourceNodeFromDB.get();
+    }
 }

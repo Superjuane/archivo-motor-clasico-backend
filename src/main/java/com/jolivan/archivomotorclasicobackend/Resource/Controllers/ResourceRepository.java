@@ -8,7 +8,10 @@ import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.Resource
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Utils.ResourceNodeToResource;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ResourceVectorDatabaseService;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabase;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.IdIsNullException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.ImageAlredyExistsException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceVectorDatabaseToResource;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.WeaviateResultConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.Log;
+import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.LogError;
+
 @Component
 public class ResourceRepository {
     ResourceVectorDatabaseService resourceVectorDatabaseService;
@@ -30,10 +35,11 @@ public class ResourceRepository {
         this.resourceNodeService = resourceNodeService;
     }
 
-    public Resource getResource(String id) throws Throwable {
+    public Resource getResource(String id){
+        if(id == null) throw new IdIsNullException("Id is null");
 
         //TODO: eliminate this developement shortcut
-        if(id == null || id.isEmpty() || id.equals('4')) id = "f4f31cb6-3ed1-45c9-8931-b73f2298d9c5";
+        if(id.equals("4")) id = "f4f31cb6-3ed1-45c9-8931-b73f2298d9c5";
 
         //PREPARING RESOURCE
         Resource resource = new Resource();
@@ -44,20 +50,15 @@ public class ResourceRepository {
 
         //VECTOR DATABASE DATA
 
-        ResourceVectorDatabase Vresource = resourceVectorDatabaseService.getResource(id);
-        resource.setTitle(Vresource.getTitle());
-        resource.setLocalImage(Vresource.getImage());
+        ResourceVectorDatabase vectorQueryResponse = resourceVectorDatabaseService.getResource(id);
+        resource = ResourceVectorDatabaseToResource.toResource(vectorQueryResponse);
 
         //GRAPH DATABASE DATA
         try {
             ResourceNode graphQueryResponse = resourceNodeService.getResourceNodeById(id);
-            List<Property> properties = new ArrayList<Property>();
-                Competition competition = new Competition();
-                competition.setName(graphQueryResponse.getCompetition());
-                properties.add(competition);
-            resource.setProperties(properties);
+            ResourceNodeToResource.completeResource(resource, graphQueryResponse);
         } catch (Exception e) {
-//            Log("Error getting ResourceNode {id:"+ id +"}...");
+            LogError("Error getting ResourceNode {id:"+ id +"}...");
         }
 
         return resource;
@@ -92,32 +93,33 @@ public class ResourceRepository {
                                        Optional<List<String>> competitions,
                                        Optional<List<String>> categories,
                                        Optional<List<String>> magazines,
-                                       Optional<String> order){
+                                       Optional<String> order) {
+        List<Resource> result;
 
-        if(title.isPresent()
+        if (title.isPresent()
                 || description.isPresent()
                 || place.isPresent()
                 || dates.isPresent()
                 || competitions.isPresent()
                 || categories.isPresent()
                 || magazines.isPresent()
-        ){
-            return getSomeResources(title.isPresent()?title.get():null,
-                    description.isPresent()?description.get():null,
-                    place.isPresent()?place.get():null,
-                    dates.isPresent()?dates.get():null,
-                    competitions.isPresent()?competitions.get():null,
-                    categories.isPresent()?categories.get():null,
-                    magazines.isPresent()?magazines.get():null
-                    );
+        ) {
+            result = getSomeResources(title.orElse(null),
+                    description.orElse(null),
+                    place.orElse(null),
+                    dates.orElse(null),
+                    competitions.orElse(null),
+                    categories.orElse(null),
+                    magazines.orElse(null)
+            );
+        } else if (page.isPresent() && size.isPresent()) {
+            result = getResources(Integer.parseInt(page.get()), Integer.parseInt(size.get()));
+        } else {
+            result = getResources(0, 20);
         }
 
 
-        //TODO: ordering!!!
-        if (page.isPresent() && size.isPresent())
-            return getResources(Integer.parseInt(page.get()), Integer.parseInt(size.get()));
-        else
-            return getResources(0, 20);
+        return result;
     }
 
     private List<Resource> getSomeResources(String title, String description, String place, List<ZonedDateTime> dates, List<String> competitions, List<String> categories, List<String> magazines) {
@@ -155,8 +157,13 @@ public class ResourceRepository {
 
             for(ResourceNode r : graphQueryResponse){
                 Resource resource = ResourceNodeToResource.toResource(r);
-                ResourceVectorDatabase vectorQueryResponse = resourceVectorDatabaseService.getResource(r.getResourceID());
-                ResourceVectorDatabaseToResource.completeResource(resource, vectorQueryResponse);
+
+                try {
+                    ResourceVectorDatabase vectorQueryResponse = resourceVectorDatabaseService.getResource(r.getResourceID());
+                    ResourceVectorDatabaseToResource.completeResource(resource, vectorQueryResponse);
+                } catch (IdIsNullException e) {
+                    LogError("Error getting ResourceVectorDatabase {id:"+ r.getResourceID() +"}...");
+                }
                 resources.add(resource);
             }
         return resources;
@@ -196,36 +203,32 @@ public class ResourceRepository {
     }
 
     public Resource getResourceByImageSimilarity(String image) {
-        resourceVectorDatabaseService.isImageAlredyInDatabase(image);
         return blank();
     }
 
     public Resource insertResource(Resource newResource){
-        Resource result = new Resource();
 
-        //INSERT INTO GRAPH DB //TODO: add more things to ImageForm apart from Title
-        ResourceNode newResourceGraph = new ResourceNode();
-        newResourceGraph.setTitle(newResource.getTitle());
+        String existingId = resourceVectorDatabaseService.isImageAlredyInDatabase(newResource.getImage());
+        if(existingId != null){
+            throw new ImageAlredyExistsException("Image already in database", existingId);
+        }
 
+        //INSERT INTO GRAPH DB
+        ResourceNode newResourceGraph = new ResourceNode(newResource);
         ResourceNode queryResultG = resourceNodeService.addResourceNode(newResourceGraph);
 
         //INSERT INTO VECTOR DB
-        ResourceVectorDatabase newResourceVector = new ResourceVectorDatabase();
-        newResourceVector.setTitle(newResource.getTitle());
-        newResourceVector.setImage(newResource.getImage());
+        ResourceVectorDatabase newResourceVector = new ResourceVectorDatabase(newResource);
+        ResourceVectorDatabase queryResultV = resourceVectorDatabaseService.addResource(newResourceVector);
 
-        ResourceVectorDatabase queryResultV;
-//        try {
-            queryResultV = resourceVectorDatabaseService.addResource(newResourceVector);
-//        } catch (ImageAlredyExistsException e) {
-//            Log("Error: "+e.getMessage());
-//            return null;
-//        }
+        //UPDATE GRAPH DB node with VectorDB.ID
+//        queryResultG.setResourceID(queryResultV.getID());
+//        resourceNodeService.updateResourceNode(queryResultG);
+        ResourceNode GraphResourceUpdateResult = resourceNodeService.updateResourceNodeId(queryResultG.getId(), queryResultV.getID());
 
-        //UPDATE GRAPH DB with VectorDB new ID //TODO: add state pending
-        queryResultG.setResourceID(queryResultV.getID());
-        resourceNodeService.updateResourceNode(queryResultG);
 
+        Resource result = ResourceNodeToResource.toResource(GraphResourceUpdateResult);
+        ResourceVectorDatabaseToResource.completeResource(result, queryResultV);
 
         return result;
     }

@@ -17,6 +17,8 @@ public class Resource {
     ImgType type;
     String image;
     List<Property> properties;
+    String creator;
+    String state;
 
     public void setImageUrl(String url) {
         this.image = url;
