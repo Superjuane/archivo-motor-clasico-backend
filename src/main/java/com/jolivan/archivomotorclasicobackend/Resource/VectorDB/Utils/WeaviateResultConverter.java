@@ -39,9 +39,9 @@ public class WeaviateResultConverter {
 
         LinkedTreeMap<?,?> data = (LinkedTreeMap<?,?>) response.getData();
         LinkedTreeMap<?,?> Get = (LinkedTreeMap<?,?>) data.get("Get");
-        ArrayList<LinkedTreeMap<?,?>> Magazines = (ArrayList<LinkedTreeMap<?,?>>) Get.get("Magazine");
-        for (LinkedTreeMap<?,?> resource : Magazines) {
-            Map<String, Object> map = MagazineToMap(resource);
+        ArrayList<LinkedTreeMap<?,?>> resources = (ArrayList<LinkedTreeMap<?,?>>) Get.get("Resource");
+        for (LinkedTreeMap<?,?> resource : resources) {
+            Map<String, Object> map = WeaviateResourceToMap(resource);
             resultList.add(map);
         }
         result.put("data", resultList);
@@ -50,7 +50,7 @@ public class WeaviateResultConverter {
         *Result<GraphQLResponse>
                 *|LinkedTreeMap data
                     *|LinkedTreeMap Get
-                        *|ArrayList<LinkedTreeMap> Magazine
+                        *|ArrayList<LinkedTreeMap> Resource
                                     !    |LinkedTreeMap _additional
                                     !       |Double distance
                                     !       |String id
@@ -60,7 +60,7 @@ public class WeaviateResultConverter {
         return result;
     }
 
-    public static Map<String, Object> MagazineToMap(LinkedTreeMap<?,?> magazine){
+    public static Map<String, Object> WeaviateResourceToMap(LinkedTreeMap<?,?> magazine){
         Map<String, Object> result = new HashMap<>();
 
         magazine.keySet().forEach(key -> {
@@ -76,7 +76,7 @@ public class WeaviateResultConverter {
         }
 
         /*
-            *LinkedTreeMap Magazine
+            *LinkedTreeMap Resource
                     *|LinkedTreeMap _additional
                        *|Double distance
                        *|String id
@@ -106,7 +106,7 @@ public class WeaviateResultConverter {
         return result;
     }
 
-    private static Map<String, Object> WeaviateObjectToMap(WeaviateObject object) {
+    public static Map<String, Object> WeaviateObjectToMap(WeaviateObject object) {
         Map<String, Object> result = new HashMap<>();
 
         object.getProperties().forEach((key, value) -> {

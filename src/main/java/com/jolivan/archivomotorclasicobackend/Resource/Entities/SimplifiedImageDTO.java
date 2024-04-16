@@ -1,6 +1,6 @@
 package com.jolivan.archivomotorclasicobackend.Resource.Entities;
 
-public class SimpleImageForm {
+public class SimplifiedImageDTO {
     private String text;
     private String image;
     public String getText() {

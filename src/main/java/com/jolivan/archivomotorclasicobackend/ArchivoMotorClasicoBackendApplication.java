@@ -11,7 +11,6 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 public class ArchivoMotorClasicoBackendApplication {
 
 	public static void main(String[] args) {
-//		VectorDatabaseClientFactory.getInstance();
 		SpringApplication.run(ArchivoMotorClasicoBackendApplication.class, args);
 	}
 

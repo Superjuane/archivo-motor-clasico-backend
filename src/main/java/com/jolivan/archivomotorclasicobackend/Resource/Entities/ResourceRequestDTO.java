@@ -6,13 +6,14 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 @Data
-public class ImageForm {
+public class ResourceRequestDTO {
     String id;
     String title;
     String description;
     String image;
     ZonedDateTime date;
     String creator;
+    String competition;
     Collection<String> tags;
 
 }
