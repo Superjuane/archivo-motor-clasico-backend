@@ -1,10 +1,11 @@
 package com.jolivan.archivomotorclasicobackend.Resource.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.*;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceFormToResourceConverter;
-import com.jolivan.archivomotorclasicobackend.Utils.Base64FileConversor;
+import com.jolivan.archivomotorclasicobackend.Resource.RUtils.Base64FileConversor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -50,6 +51,7 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @GetMapping("/resources")
+    @PreAuthorize("hasRole('ADMIN')")
     List<Resource> getResources(@RequestParam(name = "page") Optional<String> page,
                                 @RequestParam(name = "size") Optional<String> size,
                                 @RequestParam(name="title") Optional<String> title,

@@ -1,5 +1,7 @@
-package com.jolivan.archivomotorclasicobackend.User.Controllers;
+package com.jolivan.archivomotorclasicobackend.User.Controllers.service.impl;
 
+
+import com.jolivan.archivomotorclasicobackend.User.Controllers.UserRepository;
 import com.jolivan.archivomotorclasicobackend.User.Entities.MyUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -22,12 +24,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
         return User.withUsername(user.getUsername())
                 .password(user.getPassword())
-                .authorities("ROLE_USER")
+                .authorities(user.getRole())
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)
                 .disabled(false)
                 .build();
+
     }
 
 }

@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### APPMAP ###
+/tmp/appmap/request_recording/*
+appmap-*
+appmap.yml

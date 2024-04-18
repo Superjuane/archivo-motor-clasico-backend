@@ -1,12 +1,13 @@
 package com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities;
 
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
 import lombok.Data;
-import org.springframework.data.neo4j.core.schema.GeneratedValue;
-import org.springframework.data.neo4j.core.schema.Id;
-import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
+import org.springframework.data.neo4j.core.schema.*;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
+
 @Data
 @Node("User")
 public class UserNode {
@@ -17,6 +18,9 @@ public class UserNode {
 
         @Property("name")
         String name;
+
+        @Relationship("CreatedBy")
+        Collection<ResourceNode> resources;
 
     public Long getId() {
         return id;

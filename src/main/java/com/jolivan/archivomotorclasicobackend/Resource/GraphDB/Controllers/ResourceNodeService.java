@@ -3,6 +3,7 @@ package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Exceptions.ResourceNodeNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 
@@ -19,6 +20,7 @@ public class ResourceNodeService {
         this.resourceNodeRepository = ResourceNodeRepository;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public List<ResourceNode> getAllResourceNodes(){
         return resourceNodeRepository.findAll();
     }

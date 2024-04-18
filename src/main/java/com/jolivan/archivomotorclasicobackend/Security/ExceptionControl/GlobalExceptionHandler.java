@@ -11,7 +11,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        String message = "The operation could not be completed due to an integrity constraint violation.";
+        String message =  ex.getMessage();
 
 
         return ResponseEntity
