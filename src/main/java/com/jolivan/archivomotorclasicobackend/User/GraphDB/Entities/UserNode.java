@@ -2,6 +2,7 @@ package com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities;
 
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.neo4j.core.schema.*;
 
@@ -9,6 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 @Data
+@Builder
 @Node("User")
 public class UserNode {
 

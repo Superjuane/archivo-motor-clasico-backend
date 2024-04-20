@@ -1,6 +1,6 @@
 package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils;
 
-import com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControll.Exeptions.ParameterMissingExeption;
+import com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControl.Exeptions.ParameterMissingExeption;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceRequestDTO;
 
@@ -26,6 +26,7 @@ public class ResourceFormToResourceConverter {
             missingParameters.add("image");
         }
 
+        //TODO: delete this check, if authorized user = creator. If not, Error 401 Unauthorized
         if (resourceRequestDTO.getCreator() != null) {
             newResource.setCreator(resourceRequestDTO.getCreator());
         } else {

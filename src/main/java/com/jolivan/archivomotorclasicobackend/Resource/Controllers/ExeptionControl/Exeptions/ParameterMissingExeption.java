@@ -1,4 +1,4 @@
-package com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControll.Exeptions;
+package com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControl.Exeptions;
 
 import java.util.List;
 

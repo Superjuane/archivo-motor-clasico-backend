@@ -1,5 +1,7 @@
 package com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers;
 
+import com.jolivan.archivomotorclasicobackend.User.Entities.MyUser;
+import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.ExceptionControl.Exceptions.UserNodeNotFound;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.UserNodeRepository;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities.UserNode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,19 @@ public class UserNodeService {
         this.userNodeRepository = userNodeRepository;
     }
 
+
+
     public List<UserNode> getAllUserNodes(){
         return userNodeRepository.findAll();
+    }
+
+    public UserNode createUser(UserNode newUser) {
+        return userNodeRepository.save(newUser);
+    }
+
+    public UserNode getUserNodeByUsername(String username) throws UserNodeNotFound {
+        UserNode user = userNodeRepository.findByUsername(username);
+        if(user == null) throw new UserNodeNotFound();
+        return user;
     }
 }

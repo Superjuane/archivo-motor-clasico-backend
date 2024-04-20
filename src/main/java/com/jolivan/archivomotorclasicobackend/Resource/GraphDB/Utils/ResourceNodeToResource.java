@@ -22,12 +22,15 @@ public class ResourceNodeToResource {
 
         List<Property> properties = new ArrayList<>();
 
-        Competition competition = new Competition();
-            competition.setName(resourceNode.getCompetition() != null? resourceNode.getCompetition() : null);
-        properties.add(competition);
+        if(resourceNode.getCompetition() != null) {
+            Competition competition = new Competition();
+            competition.setName(resourceNode.getCompetition());
+            properties.add(competition);
+        }
 
-        MagazineIssue magazineIssue = new MagazineIssue();
+
         if(resourceNode.getMagazineIssue() != null) {
+            MagazineIssue magazineIssue = new MagazineIssue();
             magazineIssue.setName(resourceNode.getMagazineIssue().getName());
             magazineIssue.setTitle(resourceNode.getMagazineIssue().getTitle());
             magazineIssue.setNumber(resourceNode.getMagazineIssue().getNumber());

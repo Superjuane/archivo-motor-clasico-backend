@@ -11,13 +11,15 @@ import java.util.List;
 import java.util.Set;
 
 public class UserEncoder {
-    private static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     private UserEncoder (){
         throw new IllegalStateException();
     }
 
     public static MyUser toEntity(final UserRequestDTO dto) {
+        String password = encoder.encode(dto.getPassword());
+        String password2 = encoder.encode(dto.getPassword());
         return MyUser.builder()
                 .username(dto.getUsername())
                 .password(encoder.encode(dto.getPassword()))

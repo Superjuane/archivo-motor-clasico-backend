@@ -50,9 +50,10 @@ public interface ResourceVectorDatabaseRepository {
 
     /**
      * Deletes a resource from the database
+     *
      * @param id Id of the resource to delete
      */
-    public Map<String, Object> deleteResource(String id);
+    public Boolean deleteResource(String id);
 
 
 }

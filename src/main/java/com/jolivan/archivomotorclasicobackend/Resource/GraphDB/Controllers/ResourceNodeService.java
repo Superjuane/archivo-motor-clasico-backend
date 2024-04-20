@@ -81,8 +81,9 @@ public class ResourceNodeService {
         return resourceNode;
     }
 
-    public void deleteResourceNode(Long id) {
+    public Boolean deleteResourceNode(String id) {
         resourceNodeRepository.deleteById(id);
+        return true;
     }
 
     public ResourceNode updateResourceNodeId(Long queryId, String newResourceId) {
@@ -96,5 +97,13 @@ public class ResourceNodeService {
             return null;
         }
         return resourceNodeFromDB.get();
+    }
+
+    public void joinResourceToUser(String resourceId, String userId) {
+        resourceNodeRepository.joinResourceToUser(resourceId, userId);
+    }
+
+    public void joinResourceToUser(Long id, String userId) {
+        resourceNodeRepository.joinResourceToUser(id, userId);
     }
 }

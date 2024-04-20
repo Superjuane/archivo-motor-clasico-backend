@@ -243,7 +243,13 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
     }
 
     @Override
-    public Map<String, Object> deleteResource(String id) {
-        return null;
+    public Boolean deleteResource(String id) {
+        Result<Boolean> DBresult = client.data()
+                .deleter()
+                .withClassName("Resource")
+                .withID(id)
+                .run();
+
+        return DBresult.getResult();
     }
 }

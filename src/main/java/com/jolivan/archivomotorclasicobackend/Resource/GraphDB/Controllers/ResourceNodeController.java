@@ -4,8 +4,11 @@ package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Exceptions.ResourceNodeNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.function.EntityResponse;
 
+import javax.swing.text.html.parser.Entity;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -43,7 +46,7 @@ public class ResourceNodeController {
 
     @DeleteMapping("/resourcenodes/{resourceNodeId}")
     public void deleteResourceNode(@PathVariable String resourceNodeId){
-        ResourceNodeService.deleteResourceNode(Long.valueOf(resourceNodeId));
+        ResourceNodeService.deleteResourceNode(resourceNodeId);
     }
 
     @GetMapping("/resourcenodes/test/query")
@@ -52,6 +55,15 @@ public class ResourceNodeController {
                                              @RequestParam(name = "competition", required = false) List<String> competitions,
                                              @RequestParam(name = "magazine", required = false) List<String> magazines){
         return ResourceNodeService.searchResources(place, dates, competitions, magazines);
+    }
+
+    @GetMapping("/resourcenodes/test/joinUser")
+    public ResponseEntity<ResourceNode> joinResourceToUser(
+            @RequestParam(name = "resourceId") Long resourceId,
+            @RequestParam(name = "userId") String userId
+    ){
+        ResourceNodeService.joinResourceToUser(resourceId, userId);
+        return ResponseEntity.ok().build();
     }
 
 }

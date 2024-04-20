@@ -6,4 +6,6 @@ import com.jolivan.archivomotorclasicobackend.User.Entities.UserResponseDTO;
 
 public interface UserService {
     UserResponseDTO create(final UserRequestDTO rq);
+
+    UserResponseDTO authenticate(UserRequestDTO request);
 }

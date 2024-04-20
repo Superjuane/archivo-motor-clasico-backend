@@ -7,20 +7,26 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class UserController {
+    private static final String URL = "http://localhost:3000";
 
     private final UserService service;
 
-    @PostMapping
+    @CrossOrigin(origins = URL)
+    @PostMapping("/user")
     public ResponseEntity<UserResponseDTO> createUser(final @Valid @RequestBody UserRequestDTO rq) {
         return new ResponseEntity<>(this.service.create(rq), HttpStatus.CREATED);
+    }
+
+    @CrossOrigin(origins = URL)
+    @PostMapping("/user/authenticate")
+    public ResponseEntity<UserResponseDTO> authenticateUser(final @Valid @RequestBody UserRequestDTO rq) {
+        UserResponseDTO response = this.service.authenticate(rq);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

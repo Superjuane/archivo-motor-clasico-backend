@@ -52,11 +52,20 @@ public class ResourceVectorDatabaseService {
         //SETTING DATA
         resource.setID(id);
 
-        String textResult = queryResult.get("title").toString();
-        resource.setTitle(textResult);
+        if(queryResult.get("title") != null) {
+            String textResult = queryResult.get("title").toString();
+            resource.setTitle(textResult);
+        } else {
+            resource.setTitle("noTitle");
+        }
 
-        String descriptionResult = queryResult.get("description").toString();
-        resource.setDescription(descriptionResult);
+        if(queryResult.get("description") != null) {
+            String textResult = queryResult.get("description").toString();
+            resource.setDescription(textResult);
+        } else{
+            resource.setDescription("noDescription");
+        }
+
 
         String imageResult = queryResult.get("image").toString();
         resource.setImage(imageResult);
@@ -141,4 +150,12 @@ public class ResourceVectorDatabaseService {
         return null;
     }
 
+    public Boolean deleteResource(String requestId) {
+        try {
+            dbRepository.deleteResource(requestId);
+        } catch (Throwable e) {
+            return false;
+        }
+        return true;
+    }
 }

@@ -1,11 +1,16 @@
 package com.jolivan.archivomotorclasicobackend.Resource.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.*;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Exceptions.ResourceNodeNotFound;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceFormToResourceConverter;
 import com.jolivan.archivomotorclasicobackend.Resource.RUtils.Base64FileConversor;
+import com.jolivan.archivomotorclasicobackend.Security.SUtils.Session;
+import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.ExceptionControl.Exceptions.UserNodeNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -43,6 +48,7 @@ public class ResourceController {
         try {
             resource = resourceRepository.getResource(requestId);
         } catch (Throwable e) {
+            Log("!! Error: "+e.getMessage());
             return resourceRepository.blank();
         }
 
@@ -51,7 +57,6 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @GetMapping("/resources")
-    @PreAuthorize("hasRole('ADMIN')")
     List<Resource> getResources(@RequestParam(name = "page") Optional<String> page,
                                 @RequestParam(name = "size") Optional<String> size,
                                 @RequestParam(name="title") Optional<String> title,
@@ -78,22 +83,59 @@ public class ResourceController {
                 if(r.getImage() != null)r.setImage("noImage");
             }
         }
+
+
         return resources;
     }
 
 
     @CrossOrigin(origins = URL)
     @PostMapping(value = "/resources"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
-    //TODO: user authentication
     public ResponseEntity<Resource> postResource(@RequestBody ResourceRequestDTO resourceRequestDTO) {
         Resource newResource = ResourceFormToResourceConverter.toResource(resourceRequestDTO);
 
+        //TODO: delete this, will automatically detect user by auth
+        //Check that nobody is trying to post a resource with a different creator
+        if(!resourceRequestDTO.getCreator().equals(Session.getCurrentUserName())){
+            return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.FORBIDDEN);
+        }
 
-
-        Resource result = resourceRepository.insertResource(newResource);
+        Resource result = null;
+        try {
+            result = resourceRepository.insertResource(newResource);
+        } catch (UserNodeNotFound e) {
+            return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.NOT_FOUND);
+        }
 
         if(result == null) return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = URL)
+    @PutMapping(value = "/resources/{requestId:[0-9a-zA-Z-]+}"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
+    public ResponseEntity<Resource> updateResource (@RequestBody ResourceRequestDTO resourceRequestDTO, @PathVariable String requestId) {
+//        Resource updatingResource = ResourceFormToResourceConverter.toResource(resourceRequestDTO);
+//
+//        Resource result = resourceRepository.updateResource(updatingResource);
+//
+//        if(result == null) return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.NOT_IMPLEMENTED);
+    }
+
+
+    @CrossOrigin(origins = URL)
+    @DeleteMapping(value = "/resources/{requestId:[0-9a-zA-Z-]+}")
+    public ResponseEntity<Boolean> deleteResource(@PathVariable String requestId) {
+        Boolean deletedOK = false;
+        try {
+            deletedOK = resourceRepository.deleteResource(requestId);
+        } catch (ResourceNodeNotFound e) {
+            return new ResponseEntity<>(deletedOK, HttpStatus.NOT_FOUND);
+        }
+
+        if(!deletedOK) return new ResponseEntity<>(deletedOK, HttpStatus.INTERNAL_SERVER_ERROR);
+        else return new ResponseEntity<>(deletedOK, HttpStatus.OK);
     }
 
 

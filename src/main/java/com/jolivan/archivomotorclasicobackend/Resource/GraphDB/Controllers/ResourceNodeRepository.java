@@ -56,4 +56,22 @@ public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Lo
             )
     List<ResourceNode> searchResources(String place, int firstYear, int firstMonth, int firstDay, int lastYear, int lastMonth, int lastDay, List<String> competitions, List<String> magazines);
 
+    @Query("MATCH (r:ResourceNode) " +
+            "WHERE r.nodeId = $id"+
+            "DETACH DELETE r")
+    void deleteById(String id); //TODO: make delete not return always an empty array. I don't know what to return and what to check to see if works
+
+    @Query("MATCH (r:ResourceNode) " +
+            "WHERE r.nodeId = $resourceId " +
+            "MATCH (u:User) " +
+            "WHERE u.name = $userId " +
+            "CREATE (r)-[:CreatedBy]->(u)")
+    void joinResourceToUser(String resourceId, String userId); //TODO: make joinResourceToUser not return always an empty array. I don't know what to return and what to check to see if works
+
+    @Query("MATCH (r:ResourceNode) " +
+            "WHERE id(r) = $id " +
+            "MATCH (u:User) " +
+            "WHERE u.name = $userId " +
+            "CREATE (r)-[:CreatedBy]->(u)")
+    void joinResourceToUser(Long id, String userId);
 }
