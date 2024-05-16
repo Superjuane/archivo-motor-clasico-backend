@@ -1,4 +1,4 @@
-package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions;
+package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions;
 
 import org.springframework.http.HttpStatus;
 

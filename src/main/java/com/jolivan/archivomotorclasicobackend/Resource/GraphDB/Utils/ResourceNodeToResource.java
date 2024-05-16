@@ -17,8 +17,12 @@ public class ResourceNodeToResource {
     }
     public static Resource toResource(ResourceNode resourceNode){
         Resource resource = new Resource();
-        resource.setID(resourceNode.getResourceID());
+        resource.setId(resourceNode.getResourceID());
         resource.setTitle(resourceNode.getTitle());
+
+        if(resourceNode.getCreator() != null) {
+            resource.setCreator(resourceNode.getCreator().getName());
+        }
 
         List<Property> properties = new ArrayList<>();
 
@@ -51,19 +55,28 @@ public class ResourceNodeToResource {
     }
 
     public static void completeResource(Resource resource, ResourceNode graphQueryResponse) {
+        resource.setId(graphQueryResponse.getResourceID());
+        resource.setTitle(graphQueryResponse.getTitle());
+        if(graphQueryResponse.getCreator() != null) {
+            resource.setCreator(graphQueryResponse.getCreator().getName());
+        }
+
         List<Property> properties = new ArrayList<>();
-
-        Competition competition = new Competition();
+        if(graphQueryResponse.getCompetition() != null) {
+            Competition competition = new Competition();
             competition.setName(graphQueryResponse.getCompetition());
-        properties.add(competition);
+            properties.add(competition);
+        }
 
-        MagazineIssue magazineIssue = new MagazineIssue();
+        if(graphQueryResponse.getMagazineIssue() != null) {
+            MagazineIssue magazineIssue = new MagazineIssue();
             magazineIssue.setName(graphQueryResponse.getMagazineIssue().getName());
             magazineIssue.setTitle(graphQueryResponse.getMagazineIssue().getTitle());
             magazineIssue.setNumber(graphQueryResponse.getMagazineIssue().getNumber());
             magazineIssue.setDate(graphQueryResponse.getMagazineIssue().getDate());
             magazineIssue.setCountry(graphQueryResponse.getMagazineIssue().getCountry());
-        properties.add(magazineIssue);
+            properties.add(magazineIssue);
+        }
 
         resource.setProperties(properties);
     }

@@ -1,7 +1,8 @@
 package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers;
 
 import com.google.gson.internal.LinkedTreeMap;
-import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.IdIsNullException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.IdIsNullException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.VectorDatabaseNotWorkingException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.WeaviateResultConverter;
 import com.jolivan.archivomotorclasicobackend.VectorDatabaseClientFactory;
 import io.weaviate.client.WeaviateClient;
@@ -113,7 +114,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
     }
 
     @Override
-    public Map<String, Object> getResourceById(String id) throws IdIsNullException, Throwable {
+    public Map<String, Object> getResourceById(String id)  {
         if(id == null) throw new IdIsNullException("No ID for resource request in ResourceVectorDatabaseRepositoryWeaviateAdapter.getResourceById");
 
     Map<String, Object> resultMap = new HashMap<>();
@@ -124,9 +125,12 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
             .run();
 
     if(DBresult.hasErrors()){
-        for(WeaviateErrorMessage error : DBresult.getError().getMessages()){
-            throw error.getThrowable();
+        for(WeaviateErrorMessage error : DBresult.getError().getMessages()) {
+            System.out.println("Error: " + error.getMessage());
         }
+//        for(WeaviateErrorMessage error : DBresult.getError().getMessages()) {
+//            if(error.getMessage().contains("Connection refused")) throw new VectorDatabaseNotWorkingException(error.getMessage());
+//        }
     }
 
     if (DBresult.hasErrors()) {
@@ -160,8 +164,8 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
             resultMap.put("vectorWeights", object.getVectorWeights());
         }
     }
-
-    return WeaviateResultConverter.ResultListWeaviateObjectToMapSingleResource(DBresult);
+    Map<String, Object> DBresultMap = WeaviateResultConverter.ResultListWeaviateObjectToMapSingleResource(DBresult);
+    return DBresultMap;
 }
 
     @Override
@@ -238,8 +242,20 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
     }
 
     @Override
-    public Map<String, Object> updateResource(String id, Map<String, Object> data) {
-        return null;
+    public Boolean updateResource(String id, Map<String, Object> data) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("title", data.get("title"));
+        properties.put("description", data.get("description"));
+
+        Result<Boolean> DBresult = client.data()
+                .updater()
+                .withMerge()
+                .withID(id)
+                .withClassName("Resource")
+                .withProperties(properties)
+                .run();
+        return DBresult.getResult();
+
     }
 
     @Override

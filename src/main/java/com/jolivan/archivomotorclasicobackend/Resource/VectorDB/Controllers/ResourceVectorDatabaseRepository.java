@@ -31,7 +31,7 @@ public interface ResourceVectorDatabaseRepository {
      * @return Resource
      * @throws Throwable
      */
-    public Map<String, Object> getResourceById(String id) throws Throwable;
+    public Map<String, Object> getResourceById(String id);
 
     public List<Map<String, Object>> getResourcesByImageSimilarity(String title, Integer limit) throws Throwable;
 
@@ -46,7 +46,7 @@ public interface ResourceVectorDatabaseRepository {
      * @param id Id of the resource to update
      * @param data Data to update
      */
-    public Map<String, Object> updateResource(String id, Map<String, Object> data);
+    public Boolean updateResource(String id, Map<String, Object> data);
 
     /**
      * Deletes a resource from the database

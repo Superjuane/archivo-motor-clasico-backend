@@ -10,10 +10,9 @@ import java.util.List;
 @Data
 @JsonComponent
 public class Resource {
-    String ID;
+    String id;
     String title;
     String description;
-    ZonedDateTime timestamp;
     ImgType type;
     String image;
     List<Property> properties;

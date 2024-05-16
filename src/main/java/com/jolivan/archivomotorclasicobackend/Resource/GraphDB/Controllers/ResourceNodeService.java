@@ -1,7 +1,8 @@
 package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers;
 
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceUpdateDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
-import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Exceptions.ResourceNodeNotFound;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers.ExceptionControl.ResourceNodeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -53,10 +54,10 @@ public class ResourceNodeService {
         return resourceNodeRepository.searchResources(place, firstYear, firstMonth, firstDay, lastYear, lastMonth, lastDay, competitions, magazines);
     }
 
-    public ResourceNode getResourceNodeById(String id) throws ResourceNodeNotFound {
+    public ResourceNode getResourceNodeById(String id) throws ResourceNodeNotFoundException {
         ResourceNode r = resourceNodeRepository.findById(id);
         if(r == null){
-            throw new ResourceNodeNotFound();
+            throw new ResourceNodeNotFoundException();
         }
         return r;
     }
@@ -66,19 +67,20 @@ public class ResourceNodeService {
         return resourceNodeRepository.save(resourceNode);
     }
 
-    public ResourceNode updateResourceNode(ResourceNode resourceNode)  {
-        Optional<ResourceNode> resourceNodeFromDB =  resourceNodeRepository.findById(Long.valueOf(resourceNode.getResourceID()));
-        if(resourceNodeFromDB.isPresent()){
-            ResourceNode resourceNodeFromDBVal = resourceNodeFromDB.get();
-            resourceNodeFromDBVal.setResourceID(resourceNode.getResourceID());
-            resourceNodeFromDBVal.setTitle(resourceNode.getTitle());
+    public ResourceNode updateResourceNode(String id, ResourceUpdateDTO resourceUpdateDTO)  {
+        ResourceNode resourceNodeFromDB =  resourceNodeRepository.findById(id);
 
+        if(resourceNodeFromDB != null){
+            if(resourceUpdateDTO.getTitle() != null) resourceNodeFromDB.setTitle(resourceUpdateDTO.getTitle());
+            if(resourceUpdateDTO.getDate() != null) resourceNodeFromDB.setDate(resourceUpdateDTO.getDate());
+            if(resourceUpdateDTO.getCompetition() != null) resourceNodeFromDB.setCompetition(resourceUpdateDTO.getCompetition());
+            //? Esta hay que hacerla resourceNodeFromDBVal.setMagazineIssue(resourceNode.getMagazineIssue());
+            //! esta no! resourceNodeFromDBVal.setCreator(resourceNode.getCreator());
 
-            resourceNodeRepository.save(resourceNodeFromDBVal);
+            return resourceNodeRepository.save(resourceNodeFromDB);
         }else{
-            return null;
+            throw new ResourceNodeNotFoundException();
         }
-        return resourceNode;
     }
 
     public Boolean deleteResourceNode(String id) {
@@ -105,5 +107,21 @@ public class ResourceNodeService {
 
     public void joinResourceToUser(Long id, String userId) {
         resourceNodeRepository.joinResourceToUser(id, userId);
+    }
+
+    public List<String> getResourcesCompetitions() {
+        return resourceNodeRepository.getResourcesCompetitions();
+    }
+
+    public List<String> getResourcesMagazines() {
+        return resourceNodeRepository.getResourcesMagazines();
+    }
+
+    public List<String> getResourcesMagazineIssues(String magazineName) {
+        return resourceNodeRepository.getResourcesMagazineIssues(magazineName);
+    }
+
+    public List<ResourceNode> searchResourcesByUser(String username) {
+        return resourceNodeRepository.findByUser(username);
     }
 }

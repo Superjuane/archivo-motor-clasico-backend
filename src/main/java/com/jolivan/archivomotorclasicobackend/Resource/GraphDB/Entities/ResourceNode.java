@@ -10,7 +10,6 @@ import org.springframework.data.neo4j.core.schema.Property;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * This class represents the ResourceNode entity in the Neo4j database.
@@ -38,21 +37,21 @@ public class ResourceNode {
     ZonedDateTime date;
     String state;
 
-    @Relationship(type = "CreatedBy")
+    @Relationship(type = "CreatedBy", direction = Relationship.Direction.OUTGOING)
     UserNode creator;
 
-    @Relationship(type = "BelongsTo")
+    @Relationship(type = "BelongsTo", direction = Relationship.Direction.OUTGOING)
     MagazineIssueNode magazineIssue;
 
-    @Relationship(type = "Starring")
+    @Relationship(type = "Starring", direction = Relationship.Direction.OUTGOING)
     Collection<PersonNode> starring;
 
     public ResourceNode(Resource resource) {
-        this.resourceID = resource.getID() != null ? resource.getID() : null;
+        this.resourceID = resource.getId() != null ? resource.getId() : null;
         this.title = resource.getTitle() != null ? resource.getTitle() : null;
 
         Collection<com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.Property> properties = resource.getProperties();
-        if(properties != null){
+        if(properties != null && !properties.isEmpty()){
             for (com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.Property property : properties) {
                 if (property instanceof Competition) {
                     this.competition = ((Competition) property).getName();

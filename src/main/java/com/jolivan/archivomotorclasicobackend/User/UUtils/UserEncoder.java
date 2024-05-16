@@ -18,8 +18,6 @@ public class UserEncoder {
     }
 
     public static MyUser toEntity(final UserRequestDTO dto) {
-        String password = encoder.encode(dto.getPassword());
-        String password2 = encoder.encode(dto.getPassword());
         return MyUser.builder()
                 .username(dto.getUsername())
                 .password(encoder.encode(dto.getPassword()))

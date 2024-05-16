@@ -1,11 +1,10 @@
 package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers;
 
-import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceUpdateDTO;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.ResourceVectorDatabaseNotUpdatedException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabase;
-import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.IdIsNullException;
-import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions.ImageAlredyExistsException;
-import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceVectorDatabaseToResource;
-import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.WeaviateResultConverter;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.IdIsNullException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.ImageAlredyExistsException;
 import com.jolivan.archivomotorclasicobackend.Utils.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -157,5 +156,23 @@ public class ResourceVectorDatabaseService {
             return false;
         }
         return true;
+    }
+
+    public ResourceVectorDatabase updateResource(String id, ResourceUpdateDTO resourceUpdateDTO) {
+        Map<String, Object> queryResult = dbRepository.getResourceById(id);
+
+        //TODO: check if it's really necessary to update the database
+        queryResult.put("title", resourceUpdateDTO.getTitle());
+        queryResult.put("description", resourceUpdateDTO.getDescription());
+
+        Boolean updatedOK = dbRepository.updateResource(id, queryResult);
+        if(!updatedOK) throw new ResourceVectorDatabaseNotUpdatedException("Resource not updated");
+
+        ResourceVectorDatabase resource = new ResourceVectorDatabase();
+        resource.setID(id);
+        resource.setTitle(resourceUpdateDTO.getTitle());
+        resource.setDescription(resourceUpdateDTO.getDescription());
+        resource.setImage((String)queryResult.get("image"));
+        return resource;
     }
 }

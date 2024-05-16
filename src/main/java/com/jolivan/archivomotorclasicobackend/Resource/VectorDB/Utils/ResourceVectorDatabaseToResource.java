@@ -6,7 +6,7 @@ import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.Resourc
 public class ResourceVectorDatabaseToResource {
     public static Resource toResource(ResourceVectorDatabase resourceVectorDatabase){
         Resource resource = new Resource();
-        resource.setID(resourceVectorDatabase.getID());
+        resource.setId(resourceVectorDatabase.getID());
         resource.setTitle(resourceVectorDatabase.getTitle());
         resource.setDescription(resourceVectorDatabase.getDescription());
         resource.setLocalImage(resourceVectorDatabase.getImage());
@@ -14,7 +14,7 @@ public class ResourceVectorDatabaseToResource {
     }
 
     public static Resource completeResource(Resource resource, ResourceVectorDatabase resourceVectorDatabase){
-        resource.setID(resourceVectorDatabase.getID());
+        resource.setId(resourceVectorDatabase.getID());
         resource.setTitle(resourceVectorDatabase.getTitle());
         resource.setDescription(resourceVectorDatabase.getDescription());
         resource.setLocalImage(resourceVectorDatabase.getImage());

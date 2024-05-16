@@ -38,6 +38,8 @@ public class MyUser {
     @NotBlank
     private String role; // ROLE_ADMIN, ROLE_USER
 
+    private String email;
+
 //    private Set<GrantedAuthority> authorities;
 
 //    public MyUser(String username, String password, Set<? extends GrantedAuthority> authorities) {

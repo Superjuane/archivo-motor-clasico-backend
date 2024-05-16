@@ -1,7 +1,7 @@
 package com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.ExceptionControl.Exceptions;
 
-public class UserNodeNotFound extends RuntimeException {
-    public UserNodeNotFound() {
+public class UserNodeNotFoundException extends RuntimeException {
+    public UserNodeNotFoundException() {
         super("User not found");
     }
 }

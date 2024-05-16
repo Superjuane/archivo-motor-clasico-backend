@@ -1,4 +1,4 @@
-package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.ExceptionControl.Exceptions;
+package com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions;
 
 public class IdIsNullException extends RuntimeException {
     public IdIsNullException(String message) {

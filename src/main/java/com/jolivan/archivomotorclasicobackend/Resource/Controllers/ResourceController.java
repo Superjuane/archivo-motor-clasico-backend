@@ -1,16 +1,14 @@
 package com.jolivan.archivomotorclasicobackend.Resource.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.*;
-import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Exceptions.ResourceNodeNotFound;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers.ExceptionControl.ResourceNodeNotFoundException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.IdIsNullException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceFormToResourceConverter;
 import com.jolivan.archivomotorclasicobackend.Resource.RUtils.Base64FileConversor;
 import com.jolivan.archivomotorclasicobackend.Security.SUtils.Session;
-import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.ExceptionControl.Exceptions.UserNodeNotFound;
+import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.ExceptionControl.Exceptions.UserNodeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -25,7 +23,7 @@ import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.*;
 
 @RestController
 public class ResourceController {
- 
+
     private static final String URL = "http://localhost:3000";
     private final ResourceRepository resourceRepository;
 
@@ -41,6 +39,25 @@ public class ResourceController {
     }
 
     @CrossOrigin(origins = URL)
+    @GetMapping(value="/resources/properties/competitions")
+    public List<String> getResourcesCompetitions(){
+        return resourceRepository.getResourcesCompetitions();
+    }
+    @CrossOrigin(origins = URL)
+    @GetMapping(value="/resources/properties/magazines")
+    public List<String> getResourcesMagazines(){
+        return resourceRepository.getResourcesMagazines();
+    }
+
+    @CrossOrigin(origins = URL)
+    @GetMapping(value="/resources/properties/magazineIssues")
+    public List<String> getResourcesMagazineIssues(@RequestParam(name = "magazine") Optional<String> magazine){
+        return resourceRepository.getResourcesMagazineIssues(magazine);
+    }
+
+
+
+    @CrossOrigin(origins = URL)
     @GetMapping(value="/resources/{requestId:[0-9a-zA-Z-]+}")
     public Resource getResource(@PathVariable String requestId){
         Resource resource = null;
@@ -53,6 +70,26 @@ public class ResourceController {
         }
 
         return resource;
+    }
+
+    @CrossOrigin(origins = URL)
+    @GetMapping(value="/resources/user")
+    public List<Resource> getUserResources(@RequestParam String username, @RequestParam(name="noimage", required = false) Boolean noimage){
+        List<Resource> resources = null;
+        try {
+            resources = resourceRepository.getUserResources(username);
+        } catch (Throwable e) {
+            Log("!! Error: "+e.getMessage());
+            resources.add(resourceRepository.blank());
+        }
+
+        if(noimage != null && noimage){
+            for(Resource r : resources){
+                if(r.getImage() != null)r.setImage("noImage");
+            }
+        }
+
+        return resources;
     }
 
     @CrossOrigin(origins = URL)
@@ -94,16 +131,15 @@ public class ResourceController {
     public ResponseEntity<Resource> postResource(@RequestBody ResourceRequestDTO resourceRequestDTO) {
         Resource newResource = ResourceFormToResourceConverter.toResource(resourceRequestDTO);
 
-        //TODO: delete this, will automatically detect user by auth
-        //Check that nobody is trying to post a resource with a different creator
-        if(!resourceRequestDTO.getCreator().equals(Session.getCurrentUserName())){
+        String creator = Session.getCurrentUserName();
+        if(creator == null){
             return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.FORBIDDEN);
         }
 
         Resource result = null;
         try {
-            result = resourceRepository.insertResource(newResource);
-        } catch (UserNodeNotFound e) {
+            result = resourceRepository.insertResource(creator, newResource);
+        } catch (UserNodeNotFoundException e) {
             return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.NOT_FOUND);
         }
 
@@ -113,14 +149,17 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @PutMapping(value = "/resources/{requestId:[0-9a-zA-Z-]+}"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
-    public ResponseEntity<Resource> updateResource (@RequestBody ResourceRequestDTO resourceRequestDTO, @PathVariable String requestId) {
-//        Resource updatingResource = ResourceFormToResourceConverter.toResource(resourceRequestDTO);
-//
-//        Resource result = resourceRepository.updateResource(updatingResource);
-//
-//        if(result == null) return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        return new ResponseEntity<>(result, HttpStatus.OK);
-        return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.NOT_IMPLEMENTED);
+    public ResponseEntity<Resource> updateResource (@RequestBody ResourceUpdateDTO resourceUpdateDTO, @PathVariable String requestId) {
+        Resource result = null;
+
+        try {
+            result = resourceRepository.updateResource(requestId, resourceUpdateDTO);
+        } catch (IdIsNullException e) {
+            return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.BAD_REQUEST);
+        }
+
+        if(result == null) return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
 
@@ -130,7 +169,7 @@ public class ResourceController {
         Boolean deletedOK = false;
         try {
             deletedOK = resourceRepository.deleteResource(requestId);
-        } catch (ResourceNodeNotFound e) {
+        } catch (ResourceNodeNotFoundException e) {
             return new ResponseEntity<>(deletedOK, HttpStatus.NOT_FOUND);
         }
 
@@ -153,17 +192,6 @@ public class ResourceController {
 
 
     //!========================================== TESTS ==========================================
-//    @CrossOrigin(origins = URL)
-//    @PostMapping(value = "/resources/test/post"/*, produces = MediaType.APPLICATION_JSON_VALUE*/, consumes = {"application/json"})
-//    public ResponseEntity<Resource> postResourceTest(@RequestBody ImageForm imageForm) {
-//        System.out.println("------------------ POSTING RESOURCE ------------------");
-//        System.out.println(imageForm.getImage());
-//        System.out.println(imageForm.getTitle());
-//        System.out.println(imageForm.getDescription());
-//        System.out.println(imageForm.getCreator());
-//        System.out.println("------------------------------------------------------");
-//        return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.OK);
-//    }
 
     @GetMapping("/resources/test/noimage")
     List<Resource> getResourcesNoImageDevelop(@RequestParam(name = "page") Optional<String> page, @RequestParam(name = "size") Optional<String> size) {

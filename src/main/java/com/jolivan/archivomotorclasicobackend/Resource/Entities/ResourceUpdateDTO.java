@@ -6,13 +6,10 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 
 @Data
-public class ResourceRequestDTO {
-    String id;
+public class ResourceUpdateDTO {
     String title;
     String description;
-    String image;
     ZonedDateTime date;
     String competition;
     Collection<String> tags;
-
 }

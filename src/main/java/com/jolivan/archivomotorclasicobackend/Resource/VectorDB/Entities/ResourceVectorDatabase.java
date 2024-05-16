@@ -14,10 +14,10 @@ public class ResourceVectorDatabase {
     private String image;
 
     public ResourceVectorDatabase(Resource resource){
-        this.ID = resource.getID();
+        this.ID = resource.getId();
         this.title = resource.getTitle();
         this.description = resource.getDescription();
-        this.image = resource.getImage();
+        this.image = resource.getImage(); // != null ? resource.getImage() : "NoImage";
     }
 
 }

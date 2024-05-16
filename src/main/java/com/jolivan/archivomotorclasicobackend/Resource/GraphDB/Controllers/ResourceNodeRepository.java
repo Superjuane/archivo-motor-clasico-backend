@@ -57,7 +57,7 @@ public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Lo
     List<ResourceNode> searchResources(String place, int firstYear, int firstMonth, int firstDay, int lastYear, int lastMonth, int lastDay, List<String> competitions, List<String> magazines);
 
     @Query("MATCH (r:ResourceNode) " +
-            "WHERE r.nodeId = $id"+
+            "WHERE r.nodeId = $id "+
             "DETACH DELETE r")
     void deleteById(String id); //TODO: make delete not return always an empty array. I don't know what to return and what to check to see if works
 
@@ -74,4 +74,40 @@ public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Lo
             "WHERE u.name = $userId " +
             "CREATE (r)-[:CreatedBy]->(u)")
     void joinResourceToUser(Long id, String userId);
+
+    @Query("MATCH (r:ResourceNode) " +
+            "WITH DISTINCT r.competition AS competitions " +
+            "RETURN competitions")
+    List<String> getResourcesCompetitions();
+
+@Query("MATCH (m:MagazineIssue) " +
+        "WITH DISTINCT m.title AS magazines " +
+        "RETURN magazines")
+    List <String> getResourcesMagazines();
+
+@Query("MATCH (m:MagazineIssue) " +
+        "WHERE ((m.title = $magazineName) or ($magazineName is null)) " +
+        "WITH DISTINCT m.name AS magazineIssues " +
+        "RETURN magazineIssues")
+    List<String> getResourcesMagazineIssues(String magazineName);
+
+    @Query("MATCH (resourceNode:ResourceNode)-[:CreatedBy]->(u:User) " +
+            "WHERE u.name = $username " +
+            "RETURN resourceNode{" +
+            "        .competition," +
+            "        .date," +
+            "        .nodeId," +
+            "        .title," +
+            "        __nodeLabels__:" +
+            "            labels(resourceNode)," +
+            "            __internalNeo4jId__:" +
+            "                id(resourceNode)," +
+            "                __elementId__: id(resourceNode)," +
+            "    ResourceNode_CreatedBy_User: [" +
+            "        (resourceNode)-[:`CreatedBy`]->(resourceNode_creator:`User`) | resourceNode_creator{.name, __nodeLabels__: labels(resourceNode_creator), __internalNeo4jId__: id(resourceNode_creator), __elementId__: id(resourceNode_creator)}]," +
+            "    ResourceNode_Starring_Person: [" +
+            "        (resourceNode)-[:`Starring`]->(resourceNode_starring:`Person`) | resourceNode_starring{.alias, .name, __nodeLabels__: labels(resourceNode_starring), __internalNeo4jId__: id(resourceNode_starring), __elementId__: id(resourceNode_starring)}]," +
+            "    ResourceNode_BelongsTo_MagazineIssue: [" +
+            "        (resourceNode)-[:`BelongsTo`]->(resourceNode_magazineIssue:`MagazineIssue`) | resourceNode_magazineIssue{.country, .date, .name, .number, .title, __nodeLabels__: labels(resourceNode_magazineIssue), __internalNeo4jId__: id(resourceNode_magazineIssue), __elementId__: id(resourceNode_magazineIssue)}]}")
+    List<ResourceNode> findByUser(String username);
 }

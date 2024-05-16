@@ -1,14 +1,13 @@
 package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers;
 
 
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceUpdateDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
-import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Exceptions.ResourceNodeNotFound;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers.ExceptionControl.ResourceNodeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.function.EntityResponse;
 
-import javax.swing.text.html.parser.Entity;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -30,7 +29,7 @@ public class ResourceNodeController {
     }
 
     @GetMapping("/resourcenodes/{resourceNodeId}")
-    public ResourceNode getResourceNodeById(@PathVariable String resourceNodeId) throws ResourceNodeNotFound {
+    public ResourceNode getResourceNodeById(@PathVariable String resourceNodeId) throws ResourceNodeNotFoundException {
         return ResourceNodeService.getResourceNodeById(resourceNodeId);
     }
 
@@ -39,9 +38,9 @@ public class ResourceNodeController {
         return ResourceNodeService.addResourceNode(ResourceNode);
     }
 
-    @PutMapping
-    public ResourceNode updateResourceNode(@RequestBody ResourceNode ResourceNode)  {
-        return ResourceNodeService.updateResourceNode(ResourceNode);
+    @PutMapping(value = "/resourcenodes/:id", consumes = {"application/json"})
+    public ResourceNode updateResourceNode(@RequestBody ResourceUpdateDTO resourceUpdateDTO, @PathVariable String resourceNodeId)  {
+        return ResourceNodeService.updateResourceNode(resourceNodeId, resourceUpdateDTO);
     }
 
     @DeleteMapping("/resourcenodes/{resourceNodeId}")

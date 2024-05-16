@@ -32,6 +32,7 @@ public class WeaviateResultConverter {
         }
 
         GraphQLResponse response = DBresult.getResult();
+
         if(response.getErrors() != null){
             result.put(HAS_ERRORS, true);
             result.put(ERROR_MESSAGES, response.getErrors());

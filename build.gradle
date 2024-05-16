@@ -44,6 +44,10 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 	implementation 'org.postgresql:postgresql:42.1.4'
 
+	//mailer
+	implementation 'org.springframework.boot:spring-boot-starter-mail:3.2.5'
+
+
 
 }
 
