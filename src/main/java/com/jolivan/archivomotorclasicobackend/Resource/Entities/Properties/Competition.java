@@ -11,9 +11,5 @@ import lombok.RequiredArgsConstructor;
 public class Competition extends Property {
     @NonNull
     String name;
-    String year;
-    String country;
-    String startDate;
-    String finishDate;
 
 }

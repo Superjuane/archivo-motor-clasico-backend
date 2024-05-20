@@ -74,7 +74,7 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @GetMapping(value="/resources/user")
-    public List<Resource> getUserResources(@RequestParam String username, @RequestParam(name="noimage", required = false) Boolean noimage){
+    public List<Resource> getUserResources(@RequestParam(name="user") String username, @RequestParam(name="noimage", required = false) Boolean noimage){
         List<Resource> resources = null;
         try {
             resources = resourceRepository.getUserResources(username);

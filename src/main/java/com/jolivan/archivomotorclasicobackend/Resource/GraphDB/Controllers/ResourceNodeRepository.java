@@ -33,8 +33,8 @@ public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Lo
     @Query( "MATCH (resourceNode:ResourceNode) " +
             "WHERE " +
 //                "(resourceNode.place = $place or $place is null) " +
-                /*"AND */"(resourceNode.date >= datetime({year:$firstYear, month:$firstMonth, day:$firstDay}) or $firstYear is null) " +
-                "AND (resourceNode.date <= datetime({year:$lastYear, month:$lastMonth, day:$lastDay}) or $lastYear is null) " +
+                /*"AND */"(resourceNode.date >= datetime({year:$firstYear, month:$firstMonth, day:$firstDay}) or $firstYear = 0) " +
+                "AND (resourceNode.date <= datetime({year:$lastYear, month:$lastMonth, day:$lastDay}) or $lastYear = 9999) " +
                 "AND (resourceNode.competition IN $competitions OR $competitions is null) " +
 //                "AND (resourceNode.magazines IN $magazines OR $magazines is null) " +
             "RETURN resourceNode{" +
@@ -52,7 +52,9 @@ public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Lo
             "    ResourceNode_Starring_Person: [" +
             "        (resourceNode)-[:`Starring`]->(resourceNode_starring:`Person`) | resourceNode_starring{.alias, .name, __nodeLabels__: labels(resourceNode_starring), __internalNeo4jId__: id(resourceNode_starring), __elementId__: id(resourceNode_starring)}]," +
             "    ResourceNode_BelongsTo_MagazineIssue: [" +
-            "        (resourceNode)-[:`BelongsTo`]->(resourceNode_magazineIssue:`MagazineIssue`) | resourceNode_magazineIssue{.country, .date, .name, .number, .title, __nodeLabels__: labels(resourceNode_magazineIssue), __internalNeo4jId__: id(resourceNode_magazineIssue), __elementId__: id(resourceNode_magazineIssue)}]}"
+            "        (resourceNode)-[:`BelongsTo`]->(resourceNode_magazineIssue:`MagazineIssue`) | resourceNode_magazineIssue{.country, .date, .name, .number, .title, __nodeLabels__: labels(resourceNode_magazineIssue), __internalNeo4jId__: id(resourceNode_magazineIssue), __elementId__: id(resourceNode_magazineIssue)}]} "
+            +"SKIP 1 "+
+            "LIMIT 1 "
             )
     List<ResourceNode> searchResources(String place, int firstYear, int firstMonth, int firstDay, int lastYear, int lastMonth, int lastDay, List<String> competitions, List<String> magazines);
 
