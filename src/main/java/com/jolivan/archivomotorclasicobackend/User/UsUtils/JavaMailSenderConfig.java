@@ -1,4 +1,4 @@
-package com.jolivan.archivomotorclasicobackend.User.UUtils;
+package com.jolivan.archivomotorclasicobackend.User.UsUtils;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

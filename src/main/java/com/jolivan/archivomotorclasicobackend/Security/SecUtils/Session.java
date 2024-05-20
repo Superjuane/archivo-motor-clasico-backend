@@ -1,6 +1,5 @@
-package com.jolivan.archivomotorclasicobackend.Security.SUtils;
+package com.jolivan.archivomotorclasicobackend.Security.SecUtils;
 
-import org.neo4j.cypherdsl.core.Return;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

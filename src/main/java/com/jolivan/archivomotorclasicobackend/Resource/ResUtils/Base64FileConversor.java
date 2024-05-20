@@ -1,4 +1,4 @@
-package com.jolivan.archivomotorclasicobackend.Resource.RUtils;
+package com.jolivan.archivomotorclasicobackend.Resource.ResUtils;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;

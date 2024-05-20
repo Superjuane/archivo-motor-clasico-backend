@@ -14,7 +14,7 @@ import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.Resourc
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.IdIsNullException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.ImageAlredyExistsException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceVectorDatabaseToResource;
-import com.jolivan.archivomotorclasicobackend.Security.SUtils.Session;
+import com.jolivan.archivomotorclasicobackend.Security.SecUtils.Session;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.UserNodeService;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities.UserNode;
 import org.springframework.beans.factory.annotation.Autowired;

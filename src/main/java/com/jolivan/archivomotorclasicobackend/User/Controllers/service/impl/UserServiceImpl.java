@@ -10,7 +10,7 @@ import com.jolivan.archivomotorclasicobackend.User.Entities.UserRequestDTO;
 import com.jolivan.archivomotorclasicobackend.User.Entities.UserResponseDTO;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.UserNodeService;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities.UserNode;
-import com.jolivan.archivomotorclasicobackend.User.UUtils.UserEncoder;
+import com.jolivan.archivomotorclasicobackend.User.UsUtils.UserEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;

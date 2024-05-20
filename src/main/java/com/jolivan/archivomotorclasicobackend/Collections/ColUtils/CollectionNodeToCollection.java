@@ -1,4 +1,4 @@
-package com.jolivan.archivomotorclasicobackend.Collections.CUtils;
+package com.jolivan.archivomotorclasicobackend.Collections.ColUtils;
 
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionNode;

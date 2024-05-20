@@ -1,14 +1,10 @@
-package com.jolivan.archivomotorclasicobackend.User.UUtils;
+package com.jolivan.archivomotorclasicobackend.User.UsUtils;
 
 import com.jolivan.archivomotorclasicobackend.User.Entities.MyUser;
 
 import com.jolivan.archivomotorclasicobackend.User.Entities.UserRequestDTO;
 import com.jolivan.archivomotorclasicobackend.User.Entities.UserResponseDTO;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
-import java.util.List;
-import java.util.Set;
 
 public class UserEncoder {
     public static final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();

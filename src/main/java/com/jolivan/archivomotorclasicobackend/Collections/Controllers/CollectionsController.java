@@ -24,9 +24,20 @@ public class CollectionsController {
         this.collectionService = collectionService;
     }
 
-    @GetMapping("/col")
-    public ResponseEntity<List<Collection>> getCols(){
-        return new ResponseEntity<>(collectionService.getAllCollections(), HttpStatus.OK);
+    @GetMapping("/collections/{id}")
+    public ResponseEntity<Collection> getCols(@PathVariable String id){
+        if(id == null)
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.BAD_REQUEST);
+        Collection result;
+        try {
+            result = collectionService.getCollectionById(id);
+        } catch (CollectionNodeNotFoundException e){
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.NOT_FOUND);
+        }
+
+        if(result == null)
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/collections")

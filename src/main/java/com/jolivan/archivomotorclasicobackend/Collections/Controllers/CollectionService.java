@@ -3,7 +3,7 @@ package com.jolivan.archivomotorclasicobackend.Collections.Controllers;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionCreateDTO;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionUpdateDTO;
-import com.jolivan.archivomotorclasicobackend.Security.SUtils.Session;
+import com.jolivan.archivomotorclasicobackend.Security.SecUtils.Session;
 import com.jolivan.archivomotorclasicobackend.User.Controllers.ExceptionControl.Exceptions.UserForbiddenException;
 import com.jolivan.archivomotorclasicobackend.User.Controllers.UserRepository;
 import com.jolivan.archivomotorclasicobackend.User.Entities.MyUser;
@@ -68,5 +68,9 @@ public class CollectionService {
         }
 
         return collectionRepository.deleteCollection(collectionId, user.getUsername());
+    }
+
+    public Collection getCollectionById(String id) {
+        return collectionRepository.getCollectionById(id);
     }
 }

@@ -1,6 +1,6 @@
 package com.jolivan.archivomotorclasicobackend.Collections.Controllers;
 
-import com.jolivan.archivomotorclasicobackend.Collections.CUtils.CollectionNodeToCollection;
+import com.jolivan.archivomotorclasicobackend.Collections.ColUtils.CollectionNodeToCollection;
 import com.jolivan.archivomotorclasicobackend.Collections.Controllers.ExceptionControl.Exceptions.CollectionNodeNotFoundException;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionNode;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
