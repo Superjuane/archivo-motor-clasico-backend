@@ -40,7 +40,9 @@ public class WebSecurityConfiguration  {
                                 new AntPathRequestMatcher("/resources/properties/*", "GET"),
                                 new AntPathRequestMatcher("/resources/*", "GET"),
                                 new AntPathRequestMatcher("/collections", "GET"),
-                                new AntPathRequestMatcher("/collections/*", "GET")
+                                new AntPathRequestMatcher("/collections/*", "GET"),
+                                new AntPathRequestMatcher("/comments", "GET"),
+                                new AntPathRequestMatcher("/upvotes/*", "GET")
                         ).permitAll() // Allow POST requests to /user without authentication
                         .requestMatchers(new AntPathRequestMatcher("/resourcenodes")).hasRole("ADMIN") // Allow GET requests to /resourcenodes without authentication
                         .anyRequest().authenticated() // Ensures all requests are authenticated.

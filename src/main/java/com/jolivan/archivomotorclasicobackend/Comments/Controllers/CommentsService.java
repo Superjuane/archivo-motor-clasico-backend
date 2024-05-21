@@ -34,6 +34,34 @@ public class CommentsService {
         this.userService = userService;
     }
 
+    public CommentResponseDTO getCommentById(Long commentId) {
+        Comment comment = commentsRepository.findById(commentId).orElse(null);
+        if(comment == null) {
+            throw new CommentNotFoundException();
+        }
+        return CommentToCommentResponseDTO.toCommentResponseDTO(comment);
+    }
+
+    public List<CommentResponseDTO> getComments(String resourceId, Long commentParentId) {
+        List<Comment> comments;
+        List<CommentResponseDTO> result = new ArrayList<>();
+
+        if(resourceId != null) {
+            comments =  commentsRepository.findByResourceId(resourceId);
+        } else if (commentParentId != null) {
+            comments = commentsRepository.findByCommentParentId(commentParentId);
+        } else {
+            throw new RuntimeException("Comments must have a resourceId or a commentParentId");
+        }
+
+        for(Comment comment : comments) {
+            result.add(CommentToCommentResponseDTO.toCommentResponseDTO(comment));
+        }
+
+        return result;
+    }
+
+
     public CommentResponseDTO createComment(CommentDTO commentDTO) {
         MyUser user = userService.findUserByUsername(Session.getCurrentUserName());
 
@@ -73,25 +101,6 @@ public class CommentsService {
         return CommentToCommentResponseDTO.toCommentResponseDTO(commentsRepository.save(comment));
     }
 
-    public List<CommentResponseDTO> getComments(String resourceId, Long commentParentId) {
-        List<Comment> comments;
-        List<CommentResponseDTO> result = new ArrayList<>();
-
-        if(resourceId != null) {
-            comments =  commentsRepository.findByResourceId(resourceId);
-        } else if (commentParentId != null) {
-            comments = commentsRepository.findByCommentParentId(commentParentId);
-        } else {
-            throw new RuntimeException("Comments must have a resourceId or a commentParentId");
-        }
-
-        for(Comment comment : comments) {
-           result.add(CommentToCommentResponseDTO.toCommentResponseDTO(comment));
-        }
-
-        return result;
-    }
-
     public boolean deleteComment(Long id) {
         MyUser user = userService.findUserByUsername(Session.getCurrentUserName());
         if(user == null) {
@@ -116,4 +125,5 @@ public class CommentsService {
 
         return true;
     }
+
 }
