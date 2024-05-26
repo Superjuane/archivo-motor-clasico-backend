@@ -32,6 +32,7 @@ public class WebSecurityConfiguration  {
                 .csrf(AbstractHttpConfigurer::disable) // Disables CSRF protection, common in stateless REST APIs.
                 .authorizeRequests(authorize -> authorize
                         .requestMatchers(
+                                new AntPathRequestMatcher("/user", "GET"),
                                 new AntPathRequestMatcher("/user", "POST"),
                                 new AntPathRequestMatcher("/user/authenticate", "POST"),
                                 new AntPathRequestMatcher("/user/forgotpassword", "POST"),
@@ -42,6 +43,7 @@ public class WebSecurityConfiguration  {
                                 new AntPathRequestMatcher("/collections", "GET"),
                                 new AntPathRequestMatcher("/collections/*", "GET"),
                                 new AntPathRequestMatcher("/comments", "GET"),
+                                new AntPathRequestMatcher("/upvotes", "GET"),
                                 new AntPathRequestMatcher("/upvotes/*", "GET")
                         ).permitAll() // Allow POST requests to /user without authentication
                         .requestMatchers(new AntPathRequestMatcher("/resourcenodes")).hasRole("ADMIN") // Allow GET requests to /resourcenodes without authentication

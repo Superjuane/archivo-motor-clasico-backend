@@ -23,6 +23,8 @@ public class UserEncoder {
     public static UserResponseDTO toResponse(final MyUser entity) {
         return UserResponseDTO.builder()
                 .username(entity.getUsername())
+                .email(entity.getEmail())
+                .role(entity.getRole())
                 .build();
     }
 }

@@ -1,6 +1,8 @@
 package com.jolivan.archivomotorclasicobackend.Collections.Controllers;
 
 import com.jolivan.archivomotorclasicobackend.Collections.ColUtils.CollectionNodeToCollection;
+import com.jolivan.archivomotorclasicobackend.Collections.ColUtils.CollectionNodeUtils;
+import com.jolivan.archivomotorclasicobackend.Collections.Controllers.ExceptionControl.Exceptions.CollectionDoesntContainResourceException;
 import com.jolivan.archivomotorclasicobackend.Collections.Controllers.ExceptionControl.Exceptions.CollectionNodeNotFoundException;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionNode;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
@@ -35,12 +37,15 @@ public class CollectionNodeService {
 
     public Collection createCollectionNode(CollectionNode collectionNode, String username, List<String> resourcesIds){
         UserNode user = userNodeService.getUserNodeByUsername(username);
-        List<ResourceNode> resources = new LinkedList<>();
-        for(String resourceId : resourcesIds){
-            resources.add(resourceNodeService.getResourceNodeById(resourceId));
-        }
         collectionNode.setCreator(user);
-        collectionNode.setResources(resources);
+
+        if(resourcesIds != null && !resourcesIds.isEmpty()){
+            List<ResourceNode> resources = new LinkedList<>();
+            for (String resourceId : resourcesIds) {
+                resources.add(resourceNodeService.getResourceNodeById(resourceId));
+            }
+            collectionNode.setResources(resources);
+        }
 
         collectionNode = collectionNodeRepository.save(collectionNode);
         return CollectionNodeToCollection.toCollection(collectionNode);
@@ -52,6 +57,7 @@ public class CollectionNodeService {
             throw new UserNodeNotFoundException();
         }
         List<CollectionNode> collectionNodes = collectionNodeRepository.findByUsername(username);
+        CollectionNodeUtils.removeRepeatedElements(collectionNodes);
 
         List<Collection> collections = new LinkedList<>();
         for(CollectionNode collectionNode : collectionNodes){
@@ -68,7 +74,7 @@ public class CollectionNodeService {
         return CollectionNodeToCollection.toCollection(collectionNode);
     }
 
-    public Collection updateCollection(String collectionId, String resourceId) {
+    public Collection addResource(String collectionId, String resourceId) {
         CollectionNode collectionNode = collectionNodeRepository.findById(Long.valueOf(collectionId)).orElse(null);
         if(collectionNode == null){
             throw new CollectionNodeNotFoundException();
@@ -102,5 +108,30 @@ public class CollectionNodeService {
             return false;
         }
         return true;
+    }
+
+    public Collection deleteResourceFromCollection(String collectionId, String resourceId) {
+        CollectionNode collectionNode = collectionNodeRepository.findById(Long.valueOf(collectionId)).orElse(null);
+        if(collectionNode == null){
+            throw new CollectionNodeNotFoundException();
+        }
+        ResourceNode resource = resourceNodeService.getResourceNodeById(resourceId); //THROWS ResourceNodeNotFoundException
+
+        if(!collectionNode.getResources().contains(resource)){
+            throw new CollectionDoesntContainResourceException();
+        }
+
+        collectionNode.getResources().remove(resource);
+        collectionNode = collectionNodeRepository.save(collectionNode);
+        return CollectionNodeToCollection.toCollection(collectionNode);
+    }
+
+    public Collection updateTitle(String collectionId, String newTitle) {
+        CollectionNode collectionNode = collectionNodeRepository.findById(Long.valueOf(collectionId)).orElse(null);
+        if(collectionNode == null){
+            throw new CollectionNodeNotFoundException();
+        }
+        collectionNode.setTitle(newTitle);
+        return CollectionNodeToCollection.toCollection(collectionNodeRepository.save(collectionNode));
     }
 }

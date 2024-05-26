@@ -3,7 +3,6 @@ package com.jolivan.archivomotorclasicobackend.Collections.Controllers;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionCreateDTO;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionNode;
-import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionUpdateDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -38,8 +37,8 @@ public class CollectionRepository {
         return collectionNodeService.getCollectionById(collectionId);
     }
 
-    public Collection updateCollection(String collectionId, CollectionUpdateDTO collectionUpdateDTO) {
-        return collectionNodeService.updateCollection(collectionId, collectionUpdateDTO.getResourceId());
+    public Collection addResource(String collectionId, String resourceId) {
+        return collectionNodeService.addResource(collectionId, resourceId);
     }
 
     public List<Collection> getAllCollections() {
@@ -48,5 +47,13 @@ public class CollectionRepository {
 
     public Boolean deleteCollection(String collectionId, String username) {
         return collectionNodeService.deleteCollection(collectionId, username);
+    }
+
+    public Collection deleteResourceFromCollection(String collectionId, String resourceId) {
+        return collectionNodeService.deleteResourceFromCollection(collectionId, resourceId);
+    }
+
+    public Collection updateTitle(String collectionId, String newTitle) {
+        return collectionNodeService.updateTitle(collectionId, newTitle);
     }
 }

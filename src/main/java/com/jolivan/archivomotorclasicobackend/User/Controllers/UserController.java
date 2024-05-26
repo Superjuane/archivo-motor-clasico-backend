@@ -39,6 +39,12 @@ public class UserController {
     @Autowired
     private Environment env;
 
+    @GetMapping("/user")
+    @CrossOrigin(origins = URL)
+    public ResponseEntity<UserResponseDTO> getUsers(@RequestParam(name="name", required = true) String username) {
+        return new ResponseEntity<>(this.service.findUserByUsernameRestricted(username), HttpStatus.OK);
+    }
+
     @CrossOrigin(origins = URL)
     @PostMapping("/user")
     public ResponseEntity<UserResponseDTO> createUser(final @Valid @RequestBody UserRequestDTO rq) {

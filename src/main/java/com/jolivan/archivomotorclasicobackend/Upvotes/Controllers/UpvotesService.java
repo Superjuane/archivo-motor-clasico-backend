@@ -32,14 +32,20 @@ public class UpvotesService {
     }
 
     public UpvoteResponseDTO getUpvotesByCommentId(Long commentId) {
-        MyUser user = userService.findUserByUsername(Session.getCurrentUserName());
-        if(user == null) throw new UserNodeNotFoundException();
+        MyUser user;
+        if(Session.getCurrentUserName() != null) user = userService.findUserByUsername(Session.getCurrentUserName());
+        else {
+            user = null;
+        }
 
         commentsService.getCommentById(commentId); //THROWS CommentNotFoundException
 
         List<Upvote> upvotes = upvotesRepository.findByCommentId(commentId);
 
-        boolean userUpvoted = upvotes.stream().anyMatch(upvote -> upvote.getUpvoteId().getUserId() == user.getId());
+        boolean userUpvoted = false;
+        if(user != null) {
+            userUpvoted = upvotes.stream().anyMatch(upvote -> upvote.getUpvoteId().getUserId() == user.getId());
+        }
 
         UpvoteResponseDTO upvoteResponseDTO = UpvoteResponseDTO.builder()
                 .upvotes(upvotes.size())

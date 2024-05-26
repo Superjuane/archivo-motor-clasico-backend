@@ -48,6 +48,7 @@ public class CommentsService {
 
         if(resourceId != null) {
             comments =  commentsRepository.findByResourceId(resourceId);
+
         } else if (commentParentId != null) {
             comments = commentsRepository.findByCommentParentId(commentParentId);
         } else {

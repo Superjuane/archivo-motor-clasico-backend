@@ -9,10 +9,13 @@ import java.util.List;
 
 public interface CollectionNodeRepository extends Neo4jRepository<CollectionNode, Long> {
 
-    @Query("MATCH (u:User{name: $username})<-[r:CreatedBy]-(c:CollectionNode) " +
-//            "MATCH (c:CollectionNode) " +
-//            "WHERE (c:CollectionNode)-[:CreatedBy]->(u) " +
-            "RETURN c, collect(r), collect(u)")
+    //TODO: Fix this query so it doesn't returns repeated collections
+    @Query(
+            "MATCH (u:User{name: $username})<-[x:CreatedBy]-(c:CollectionNode)-[y:Has]->(r:ResourceNode)" +
+            "RETURN c AS CollectionNode, collect(x) as CreatedBy, collect(u) as UserNode, collect(y) as Has, collect(r) as ResourceNode " +
+            "UNION " +
+            "MATCH (u2:User{name: $username})<-[x2:CreatedBy]-(c2:CollectionNode) " +
+            "RETURN c2 AS CollectionNode, collect(x2) as CreatedBy, collect(u2) as UserNode, collect([]) as Has, collect([]) as ResourceNode ")
 
 //    @Query ("MATCH (c:CollectionNode)-[r:CreatedBy]->(u:User{name: $username})" +
 //            "RETURN u,collect(r),collect(c)")

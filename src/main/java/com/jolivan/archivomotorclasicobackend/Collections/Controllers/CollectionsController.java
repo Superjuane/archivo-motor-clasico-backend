@@ -1,5 +1,6 @@
 package com.jolivan.archivomotorclasicobackend.Collections.Controllers;
 
+import com.jolivan.archivomotorclasicobackend.Collections.Controllers.ExceptionControl.Exceptions.CollectionDoesntContainResourceException;
 import com.jolivan.archivomotorclasicobackend.Collections.Controllers.ExceptionControl.Exceptions.CollectionNodeNotFoundException;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionCreateDTO;
@@ -18,6 +19,8 @@ import java.util.Map;
 @RestController
 public class CollectionsController {
 
+    private final String URL = "http://localhost:3000";
+
     private final CollectionService collectionService;
 
     public CollectionsController(CollectionService collectionService) {
@@ -25,6 +28,7 @@ public class CollectionsController {
     }
 
     @GetMapping("/collections/{id}")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<Collection> getCols(@PathVariable String id){
         if(id == null)
             return new ResponseEntity<>(collectionService.blank(), HttpStatus.BAD_REQUEST);
@@ -41,6 +45,7 @@ public class CollectionsController {
     }
 
     @GetMapping("/collections")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<List<Collection>> getAllCollectionsByUser(@RequestParam(name = "user", required = true) String username){
         List<Collection> result;
         try {
@@ -56,6 +61,7 @@ public class CollectionsController {
     }
 
     @PostMapping("/collections")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<Collection> createCollection(@RequestBody CollectionCreateDTO collectionDTO){
         //TODO:fix 4 return statements!!
         if(collectionDTO.getTitle() == null ){
@@ -74,22 +80,17 @@ public class CollectionsController {
     }
 
     @PutMapping("/collections/{collectionId}")
-    public ResponseEntity<Object> updateCollection(@PathVariable String collectionId, @RequestBody CollectionUpdateDTO collectionUpdateDTO){
+    @CrossOrigin(origins = URL)
+    public ResponseEntity<Object> updateCollection(@PathVariable String collectionId, @RequestBody CollectionUpdateDTO collectionDTO){
         Collection result;
         if(collectionId == null)
             return new ResponseEntity<>(collectionService.blank(), HttpStatus.BAD_REQUEST);
 
         try {
-            result = collectionService.updateCollection(collectionId, collectionUpdateDTO);
-        } catch (UserNodeNotFoundException | CollectionNodeNotFoundException |ResourceNodeNotFoundException e ){
+            result = collectionService.updateTitle(collectionId, collectionDTO.getNewTitle());
+        } catch (UserNodeNotFoundException | CollectionNodeNotFoundException e ){
             Map<String, String> body = new HashMap<>();
-            if(e instanceof UserNodeNotFoundException)
-                body.put("message", "User not found");
-            else if(e instanceof CollectionNodeNotFoundException)
-                body.put("message", "Collection not found");
-            else if(e instanceof ResourceNodeNotFoundException)
-                body.put("message", "Resource not found");
-
+            body.put("message", e.getMessage());
             return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
         } catch (UserForbiddenException e) {
             return new ResponseEntity<>(collectionService.blank(), HttpStatus.FORBIDDEN);
@@ -100,7 +101,58 @@ public class CollectionsController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    @PostMapping("/collections/{collectionId}/resources/{resourceId}")
+    @CrossOrigin(origins = URL)
+    public ResponseEntity<Object> updateCollection(@PathVariable String collectionId, @PathVariable String resourceId){
+        Collection result;
+        if(collectionId == null)
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.BAD_REQUEST);
+
+        try {
+            result = collectionService.addResource(collectionId, resourceId);
+        } catch (UserNodeNotFoundException | CollectionNodeNotFoundException |ResourceNodeNotFoundException e ){
+            Map<String, String> body = new HashMap<>();
+            body.put("message", e.getMessage());
+            return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        } catch (UserForbiddenException e) {
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.FORBIDDEN);
+        }
+
+        if(result == null)
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/collections/{collectionId}/resources/{resourceId}")
+    @CrossOrigin(origins = URL)
+    public ResponseEntity<Object> deleteResourceFromCollection(@PathVariable String collectionId, @PathVariable String resourceId){
+        Collection result;
+        Map<String, String> body = new HashMap<>();
+
+        if(collectionId == null || resourceId == null) {
+            body.put("message", "Collection ID or Resource ID can't be null");
+            return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            result = collectionService.deleteResourceFromCollection(collectionId, resourceId);
+        } catch (UserNodeNotFoundException
+                 | CollectionNodeNotFoundException
+                 | ResourceNodeNotFoundException
+                 | CollectionDoesntContainResourceException e ){
+            body.put("message", e.getMessage());
+            return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        } catch (UserForbiddenException e) { //TODO: MAKE HANDLER FOR THIS
+            return new ResponseEntity<>(collectionService.blank(), HttpStatus.FORBIDDEN);
+        }
+
+        if(result == null)
+            return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
     @DeleteMapping("/collections/{collectionId}")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<Object> deleteCollection(@PathVariable String collectionId){
         Boolean result;
         Map<String, String> body = new HashMap<>();

@@ -19,6 +19,9 @@ public interface UserService {
 
     MyUser findUserByUsername(String username);
 
+    UserResponseDTO findUserByUsernameRestricted(String username);
+
+
     MyUser findUserByEmail(String email);
 
     PasswordResetToken getToken(String token);

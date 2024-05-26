@@ -28,7 +28,7 @@ public class Comment{
     @ManyToOne
     MyUser creator;
 
-    @OneToOne
+    @ManyToOne
     Comment commentParent;
 
     String resourceId;

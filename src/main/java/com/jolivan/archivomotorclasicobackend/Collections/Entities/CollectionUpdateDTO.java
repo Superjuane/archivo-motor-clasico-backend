@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class CollectionUpdateDTO {
-    String resourceId;
+    String newTitle;
 }

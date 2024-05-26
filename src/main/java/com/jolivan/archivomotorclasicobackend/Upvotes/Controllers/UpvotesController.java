@@ -16,6 +16,7 @@ import java.util.Map;
 @RestController
 public class UpvotesController {
 
+    private final String URL = "http://localhost:3000";
     private final UpvotesService upvotesService;
 
     @Autowired
@@ -24,13 +25,14 @@ public class UpvotesController {
     }
 
     @GetMapping("/upvotes/{commentId}")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<Object> getUpvotesByCommentId(@PathVariable Long commentId) {
         Map<String, String> body = new HashMap<>();
         UpvoteResponseDTO upvotes;
 
         try {
             upvotes = upvotesService.getUpvotesByCommentId(commentId);
-        } catch (CommentNotFoundException | UserNodeNotFoundException e) {
+        } catch (CommentNotFoundException e) {
             body.put("message", e.getMessage());
             return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
         }
@@ -44,6 +46,7 @@ public class UpvotesController {
     }
 
     @PostMapping("/upvotes/{commentId}")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<Object> upvoteComment(@PathVariable Long commentId) {
         Map<String, String> body = new HashMap<>();
         UpvoteResponseDTO upvotes;
@@ -67,6 +70,7 @@ public class UpvotesController {
     }
 
     @DeleteMapping("/upvotes/{commentId}")
+    @CrossOrigin(origins = URL)
     public ResponseEntity<Object> deleteUpvote(@PathVariable Long commentId) {
         Map<String, String> body = new HashMap<>();
         UpvoteResponseDTO upvotes;

@@ -2,7 +2,6 @@ package com.jolivan.archivomotorclasicobackend.Collections.Controllers;
 
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.Collection;
 import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionCreateDTO;
-import com.jolivan.archivomotorclasicobackend.Collections.Entities.CollectionUpdateDTO;
 import com.jolivan.archivomotorclasicobackend.Security.SecUtils.Session;
 import com.jolivan.archivomotorclasicobackend.User.Controllers.ExceptionControl.Exceptions.UserForbiddenException;
 import com.jolivan.archivomotorclasicobackend.User.Controllers.UserRepository;
@@ -48,12 +47,12 @@ public class CollectionService {
         return collectionRepository.getAllCollectionsByUser(username);
     }
 
-    public Collection updateCollection(String collectionId, CollectionUpdateDTO collectionUpdateDTO) {
+    public Collection addResource(String collectionId, String resourceId) {
         Collection collection = collectionRepository.getCollectionById(collectionId);
         if(!collection.getCreator().equals(Session.getCurrentUserName())){
             throw new UserForbiddenException();
         }
-        return collectionRepository.updateCollection(collectionId, collectionUpdateDTO);
+        return collectionRepository.addResource(collectionId, resourceId);
     }
 
     public List<Collection> getAllCollections() {
@@ -72,5 +71,21 @@ public class CollectionService {
 
     public Collection getCollectionById(String id) {
         return collectionRepository.getCollectionById(id);
+    }
+
+    public Collection deleteResourceFromCollection(String collectionId, String resourceId) {
+        Collection collection = collectionRepository.getCollectionById(collectionId); //THROWS CollectionNodeNotFoundException
+        if(!collection.getCreator().equals(Session.getCurrentUserName())){
+            throw new UserForbiddenException();
+        }
+        return collectionRepository.deleteResourceFromCollection(collectionId, resourceId);
+    }
+
+    public Collection updateTitle(String collectionId, String newTitle) {
+        Collection collection = collectionRepository.getCollectionById(collectionId); //THROWS CollectionNodeNotFoundException
+        if(!collection.getCreator().equals(Session.getCurrentUserName())){
+            throw new UserForbiddenException();
+        }
+        return collectionRepository.updateTitle(collectionId, newTitle);
     }
 }

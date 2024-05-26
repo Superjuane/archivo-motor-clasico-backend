@@ -68,6 +68,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseDTO findUserByUsernameRestricted(String username) {
+        MyUser user = repository.findByUsername(username);
+        UserResponseDTO u = UserEncoder.toResponse(user);
+        return u;
+    }
+
+    @Override
     public MyUser findUserByEmail(String email) {
         return repository.findByEmail(email);
     }

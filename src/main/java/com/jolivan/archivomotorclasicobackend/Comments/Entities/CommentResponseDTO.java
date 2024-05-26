@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.boot.jackson.JsonComponent;
 
+import java.util.List;
+
 
 @Data
 @JsonComponent
@@ -17,4 +19,5 @@ public class CommentResponseDTO {
     String creator;
     CommentResponseDTO commentParent;
     String resourceId;
+    List<Long> comments;
 }

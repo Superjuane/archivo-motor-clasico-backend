@@ -19,10 +19,14 @@ public class CollectionNodeToCollection {
         collection.setTitle(collectionNode.getTitle());
 
         List<String> resourcesIds = new ArrayList<>();
-        for (ResourceNode resource : collectionNode.getResources()) {
-           resourcesIds.add(resource.getResourceID());
+
+        if(collectionNode.getResources() != null && !collectionNode.getResources().isEmpty()){
+            for (ResourceNode resource : collectionNode.getResources()) {
+                resourcesIds.add(resource.getResourceID());
+            }
         }
         collection.setResourcesIds(resourcesIds);
+
 
         collection.setCreator(collectionNode.getCreator().getName());
 
