@@ -10,6 +10,7 @@ import org.springframework.data.neo4j.core.schema.Property;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * This class represents the ResourceNode entity in the Neo4j database.
@@ -40,11 +41,11 @@ public class ResourceNode {
     @Relationship(type = "CreatedBy", direction = Relationship.Direction.OUTGOING)
     UserNode creator;
 
-    @Relationship(type = "BelongsTo", direction = Relationship.Direction.OUTGOING)
+    @Relationship(type = "AppearsIn", direction = Relationship.Direction.OUTGOING)
     MagazineIssueNode magazineIssue;
 
     @Relationship(type = "Starring", direction = Relationship.Direction.OUTGOING)
-    Collection<PersonNode> starring;
+    List<PersonNode> persons;
 
     public ResourceNode(Resource resource) {
         this.resourceID = resource.getId() != null ? resource.getId() : null;

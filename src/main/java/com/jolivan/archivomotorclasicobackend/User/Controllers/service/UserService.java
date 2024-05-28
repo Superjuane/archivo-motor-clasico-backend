@@ -31,4 +31,6 @@ public interface UserService {
     void updateToken(PasswordResetToken tokenEntity);
 
     void updateUserPassword(MyUser user, String password);
+
+    void deleteTokenFromUser(Long id);
 }

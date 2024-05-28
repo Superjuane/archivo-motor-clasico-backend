@@ -40,13 +40,13 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @GetMapping(value="/resources/properties/competitions")
-    public List<String> getResourcesCompetitions(){
-        return resourceRepository.getResourcesCompetitions();
+    public List<String> getResourcesCompetitions(@RequestParam(name = "competition", required = false) String competition){
+        return resourceRepository.getResourcesCompetitions(competition);
     }
     @CrossOrigin(origins = URL)
     @GetMapping(value="/resources/properties/magazines")
-    public List<String> getResourcesMagazines(){
-        return resourceRepository.getResourcesMagazines();
+    public List<String> getResourcesMagazines(@RequestParam(name = "magazine") String magazine){
+        return resourceRepository.getResourcesMagazines(magazine);
     }
 
     @CrossOrigin(origins = URL)
@@ -55,11 +55,15 @@ public class ResourceController {
         return resourceRepository.getResourcesMagazineIssues(magazine);
     }
 
-
+    @CrossOrigin(origins = URL)
+    @GetMapping(value="/resources/properties/persons")
+    public List<String> getResourcesPersons(@RequestParam(name = "person", required = false) String person){
+        return resourceRepository.getResourcesPersons(person);
+    }
 
     @CrossOrigin(origins = URL)
     @GetMapping(value="/resources/{requestId:[0-9a-zA-Z-]+}")
-    public Resource getResource(@PathVariable String requestId){
+    public Resource getResource(@PathVariable String requestId, @RequestParam(name="noimage", required = false) Boolean noimage){
         Resource resource = null;
 
         try {
@@ -67,6 +71,9 @@ public class ResourceController {
         } catch (Throwable e) {
             Log("!! Error: "+e.getMessage());
             return resourceRepository.blank();
+        }
+        if(noimage != null && noimage){
+            if(resource.getImage() != null)resource.setImage("noImage");
         }
 
         return resource;

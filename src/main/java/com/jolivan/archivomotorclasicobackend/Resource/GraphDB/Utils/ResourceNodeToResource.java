@@ -1,10 +1,8 @@
 package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Utils;
 
-import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.Competition;
-import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.Date;
-import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.MagazineIssue;
-import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.Property;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.*;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.PersonNode;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
 
 import java.util.ArrayList;
@@ -41,6 +39,19 @@ public class ResourceNodeToResource {
             magazineIssue.setDate(resourceNode.getMagazineIssue().getDate());
             magazineIssue.setCountry(resourceNode.getMagazineIssue().getCountry());
             properties.add(magazineIssue);
+        }
+
+        if(resourceNode.getPersons() != null){
+            List<Person> personsList = new ArrayList<>();
+            for (PersonNode personNode : resourceNode.getPersons()) {
+                Person person = new Person();
+                person.setName(personNode.getName());
+                person.setAlias(personNode.getAlias());
+                personsList.add(person);
+            }
+            Persons persons = new Persons();
+            persons.setPersons(personsList);
+            properties.add(persons);
         }
 
         Date date = new Date();

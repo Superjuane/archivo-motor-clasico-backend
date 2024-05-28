@@ -66,7 +66,7 @@ public class UpvotesController {
             return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(upvotes, HttpStatus.NOT_IMPLEMENTED);
+        return new ResponseEntity<>(upvotes, HttpStatus.OK);
     }
 
     @DeleteMapping("/upvotes/{commentId}")

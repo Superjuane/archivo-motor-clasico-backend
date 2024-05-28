@@ -71,7 +71,9 @@ public class UserController {
                 if(e.getCause().getMessage().contains("llave duplicada")){
                     PasswordResetToken tokenEntity = service.getTokenByUserId(user.getId());
                     tokenEntity.setToken(token);
-                    tokenEntity.setExpiryDate(Date.from(tokenEntity.getExpiryDate().toInstant().plusSeconds(86400)));
+                    Date now = new Date();
+                    long time = now.getTime();
+                    tokenEntity.setExpiryDate(new Date(time + (60 * 24 * 1000)));
                     service.updateToken(tokenEntity);
                 }
             }
@@ -100,6 +102,7 @@ public class UserController {
 
         final MyUser user = token.getUser();
         service.updateUserPassword(user, dto.getPassword());
+//        service.deleteTokenFromUser(user.getId()); //TODO: fix this
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

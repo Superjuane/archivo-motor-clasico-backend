@@ -107,4 +107,9 @@ public class UserServiceImpl implements UserService {
         repository.save(user);
     }
 
+    @Override
+    public void deleteTokenFromUser(Long id) {
+        passwordTokenRepository.deleteByUserId(id);
+    }
+
 }

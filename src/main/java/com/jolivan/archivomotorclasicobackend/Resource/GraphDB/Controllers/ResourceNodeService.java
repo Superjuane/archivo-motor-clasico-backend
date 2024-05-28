@@ -1,6 +1,8 @@
 package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers;
 
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceUpdateDTO;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.MagazineIssueNode;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.PersonNode;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers.ExceptionControl.ResourceNodeNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,16 +11,22 @@ import org.springframework.stereotype.Service;
 
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class ResourceNodeService {
     private final ResourceNodeRepository resourceNodeRepository;
+    private final MagazineIssueNodeRepository magazineIssueNodeRepository;
+    private final PersonNodeRepository personNodeRepository;
 
     @Autowired
-    public ResourceNodeService(ResourceNodeRepository ResourceNodeRepository) {
+    public ResourceNodeService(ResourceNodeRepository ResourceNodeRepository, MagazineIssueNodeRepository magazineIssueNodeRepository, PersonNodeRepository personNodeRepository) {
         this.resourceNodeRepository = ResourceNodeRepository;
+        this.magazineIssueNodeRepository = magazineIssueNodeRepository;
+        this.personNodeRepository = personNodeRepository;
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -69,15 +77,50 @@ public class ResourceNodeService {
 
     public ResourceNode updateResourceNode(String id, ResourceUpdateDTO resourceUpdateDTO)  {
         ResourceNode resourceNodeFromDB =  resourceNodeRepository.findById(id);
+        MagazineIssueNode magazineIssueNode = null;
+        List<PersonNode> persons = null;
 
         if(resourceNodeFromDB != null){
             if(resourceUpdateDTO.getTitle() != null) resourceNodeFromDB.setTitle(resourceUpdateDTO.getTitle());
             if(resourceUpdateDTO.getDate() != null) resourceNodeFromDB.setDate(resourceUpdateDTO.getDate());
             if(resourceUpdateDTO.getCompetition() != null) resourceNodeFromDB.setCompetition(resourceUpdateDTO.getCompetition());
-            //? Esta hay que hacerla resourceNodeFromDBVal.setMagazineIssue(resourceNode.getMagazineIssue());
-            //! esta no! resourceNodeFromDBVal.setCreator(resourceNode.getCreator());
+            if(resourceUpdateDTO.getMagazineIssue() != null){
+                magazineIssueNode = magazineIssueNodeRepository.getMagazineIssueNodeFromName(resourceUpdateDTO.getMagazineIssue().get("title")+'#'+ resourceUpdateDTO.getMagazineIssue().get("number"));
+                if(magazineIssueNode == null){
+                    magazineIssueNode = new MagazineIssueNode();
+                    magazineIssueNode.setName(resourceUpdateDTO.getMagazineIssue().get("title")+'#'+ resourceUpdateDTO.getMagazineIssue().get("number"));
+                    magazineIssueNode.setTitle(resourceUpdateDTO.getMagazineIssue().get("title"));
+                    magazineIssueNode.setNumber(Integer.valueOf(resourceUpdateDTO.getMagazineIssue().get("number")));
+                    if(resourceUpdateDTO.getMagazineIssue().get("date") != null) magazineIssueNode.setDate(ZonedDateTime.parse(resourceUpdateDTO.getMagazineIssue().get("date")));
+                    if(resourceUpdateDTO.getMagazineIssue().get("country") != null) magazineIssueNode.setCountry(resourceUpdateDTO.getMagazineIssue().get("country"));
+                    magazineIssueNode = magazineIssueNodeRepository.save(magazineIssueNode);
+                }
+            }
 
-            return resourceNodeRepository.save(resourceNodeFromDB);
+            if(resourceUpdateDTO.getPersons() != null){
+                List<PersonNode> newPersons = new ArrayList<>();
+                for (Map<String, String> personMap : resourceUpdateDTO.getPersons()) {
+                    PersonNode person = personNodeRepository.getPersonNodeFromName(personMap.get("name"));
+                    if(person == null){
+                        person = new PersonNode();
+                        person.setName(personMap.get("name"));
+                        if(personMap.get("alias") != null) person.setAlias(personMap.get("alias"));
+                        person = personNodeRepository.save(person);
+                    }
+                    newPersons.add(person);
+                }
+                resourceNodeFromDB.setPersons(newPersons);
+            }
+
+            if(magazineIssueNode != null) {
+                resourceNodeFromDB.setMagazineIssue(magazineIssueNode);
+            }
+
+            resourceNodeFromDB = resourceNodeRepository.save(resourceNodeFromDB);
+//            if(magazineIssueNode != null){
+//                resourceNodeRepository.joinResourceToMagazineIssue(resourceNodeFromDB.getResourceID(), magazineIssueNode.getName());
+//            }
+            return resourceNodeFromDB;
         }else{
             throw new ResourceNodeNotFoundException();
         }
@@ -121,7 +164,12 @@ public class ResourceNodeService {
         return resourceNodeRepository.getResourcesMagazineIssues(magazineName);
     }
 
+    public List<String> getResourcesPersons() {
+        return resourceNodeRepository.getResourcesPersons();
+    }
+
     public List<ResourceNode> searchResourcesByUser(String username) {
         return resourceNodeRepository.findByUser(username);
     }
+
 }

@@ -1,4 +1,5 @@
 package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers;
+import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.MagazineIssueNode;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -10,24 +11,54 @@ import java.util.List;
 @Repository
 public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Long> {
 
-    @Query("MATCH (resourceNode:ResourceNode) " +
-            "WHERE resourceNode.nodeId = $id " +
-            "RETURN resourceNode{" +
-            "        .competition," +
-            "        .date," +
-            "        .nodeId," +
-            "        .title," +
-            "        __nodeLabels__:" +
-            "            labels(resourceNode)," +
-            "            __internalNeo4jId__:" +
-            "                id(resourceNode)," +
-            "                __elementId__: id(resourceNode)," +
-            "    ResourceNode_CreatedBy_User: [" +
-            "        (resourceNode)-[:`CreatedBy`]->(resourceNode_creator:`User`) | resourceNode_creator{.name, __nodeLabels__: labels(resourceNode_creator), __internalNeo4jId__: id(resourceNode_creator), __elementId__: id(resourceNode_creator)}]," +
-            "    ResourceNode_Starring_Person: [" +
-            "        (resourceNode)-[:`Starring`]->(resourceNode_starring:`Person`) | resourceNode_starring{.alias, .name, __nodeLabels__: labels(resourceNode_starring), __internalNeo4jId__: id(resourceNode_starring), __elementId__: id(resourceNode_starring)}]," +
-            "    ResourceNode_BelongsTo_MagazineIssue: [" +
-            "        (resourceNode)-[:`BelongsTo`]->(resourceNode_magazineIssue:`MagazineIssue`) | resourceNode_magazineIssue{.country, .date, .name, .number, .title, __nodeLabels__: labels(resourceNode_magazineIssue), __internalNeo4jId__: id(resourceNode_magazineIssue), __elementId__: id(resourceNode_magazineIssue)}]}")
+    //! OLD ONE, DO NOT USE
+//    @Query("MATCH (resourceNode:ResourceNode) " +
+//            "WHERE resourceNode.nodeId = $id " +
+//            "RETURN resourceNode{" +
+//            "        .competition," +
+//            "        .date," +
+//            "        .nodeId," +
+//            "        .title," +
+//            "        __nodeLabels__:" +
+//            "            labels(resourceNode)," +
+//            "            __internalNeo4jId__:" +
+//            "                id(resourceNode)," +
+//            "                __elementId__: id(resourceNode)," +
+//            "    ResourceNode_CreatedBy_User: [" +
+//            "        (resourceNode)-[:`CreatedBy`]->(resourceNode_creator:`User`) | resourceNode_creator{.name, __nodeLabels__: labels(resourceNode_creator), __internalNeo4jId__: id(resourceNode_creator), __elementId__: id(resourceNode_creator)}]," +
+//            "    ResourceNode_Starring_Person: [" +
+//            "        (resourceNode)-[:`Starring`]->(resourceNode_starring:`Person`) | resourceNode_starring{.alias, .name, __nodeLabels__: labels(resourceNode_starring), __internalNeo4jId__: id(resourceNode_starring), __elementId__: id(resourceNode_starring)}]," +
+//            "    ResourceNode_BelongsTo_MagazineIssue: [" +
+//            "        (resourceNode)-[:`BelongsTo`]->(resourceNode_magazineIssue:`MagazineIssue`) | resourceNode_magazineIssue{.country, .date, .name, .number, .title, __nodeLabels__: labels(resourceNode_magazineIssue), __internalNeo4jId__: id(resourceNode_magazineIssue), __elementId__: id(resourceNode_magazineIssue)}]}")
+
+    //? OLD ONES, DOESN'T ACCEPT NULLS
+//    @Query( "MATCH (m:MagazineIssue)<-[a:AppearsIn]-(resourceNode:ResourceNode{nodeId: $id})-[c:CreatedBy]->(u:User) " +
+//            "RETURN resourceNode as resourceNode, collect(c) as CreatedBy, collect(u) as UserNode, collect(a) as AppearsIn, collect(m) as MagazineIssueNode"
+//            )
+
+    //? OLD ONES, DOESN'T ACCEPT NULLS
+//    @Query( "MATCH (m:MagazineIssue)<-[a:AppearsIn]-(resourceNode:ResourceNode{nodeId: $id}) " +
+//            "MATCH (resourceNode:ResourceNode{nodeId: $id})-[c:CreatedBy]->(u:User) " +
+//            "MATCH (resourceNode:ResourceNode{nodeId: $id})-[s:Starring]->(p:Person)" +
+//            "RETURN resourceNode as resourceNode, " +
+//            "collect(a) as AppearsIn, collect(m) as MagazineIssueNode, " +
+//            "collect(c) as CreatedBy, collect(u) as UserNode, " +
+//            "collect(s) as Starring, collect(p) as Person"
+//
+//    )
+
+    @Query("MATCH (resourceNode:ResourceNode{nodeId: $id}) " +
+            "WITH resourceNode " +
+            "OPTIONAL MATCH (resourceNode)-[c:CreatedBy]->(u:User) " +
+//            "WITH resourceNode " +
+            "OPTIONAL MATCH (resourceNode)-[s:Starring]->(p:Person) " +
+//            "WITH resourceNode " +
+            "OPTIONAL MATCH (resourceNode)-[a:AppearsIn]->(m:MagazineIssue) " +
+            "RETURN resourceNode as resourceNode, " +
+            "collect(a) as AppearsIn, collect(m) as MagazineIssueNode, " +
+            "collect(c) as CreatedBy, collect(u) as UserNode, " +
+            "collect(s) as Starring, collect(p) as Person"
+    )
     public ResourceNode findById(String id);
 
     @Query( "MATCH (resourceNode:ResourceNode) " +
@@ -112,4 +143,17 @@ public interface ResourceNodeRepository extends Neo4jRepository<ResourceNode, Lo
             "    ResourceNode_BelongsTo_MagazineIssue: [" +
             "        (resourceNode)-[:`BelongsTo`]->(resourceNode_magazineIssue:`MagazineIssue`) | resourceNode_magazineIssue{.country, .date, .name, .number, .title, __nodeLabels__: labels(resourceNode_magazineIssue), __internalNeo4jId__: id(resourceNode_magazineIssue), __elementId__: id(resourceNode_magazineIssue)}]}")
     List<ResourceNode> findByUser(String username);
+
+    @Query("MATCH (r:ResourceNode) " +
+            "WHERE r.nodeId = $resourceId " +
+            "MATCH (m:MagazineIssue) " +
+            "WHERE m.name = $magazineIssueId " +
+            "CREATE (r)-[:AppearsIn]->(m)")
+    void joinResourceToMagazineIssue(String resourceId, String magazineIssueId);
+
+    @Query("MATCH (p:Person) " +
+            "WITH DISTINCT p.name AS persons " +
+            "RETURN persons")
+    List<String> getResourcesPersons();
+
 }

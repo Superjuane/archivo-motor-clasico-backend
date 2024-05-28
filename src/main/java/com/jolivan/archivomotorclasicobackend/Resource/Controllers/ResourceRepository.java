@@ -210,8 +210,11 @@ public class ResourceRepository {
         return resourceVectorDatabaseService.getResourcesIds();
     }
 
-    public List<String> getResourcesCompetitions() {
-        return resourceNodeService.getResourcesCompetitions();
+    public List<String> getResourcesCompetitions(String competition) {
+        List<String> competitions = resourceNodeService.getResourcesCompetitions();
+        List<String> filtered = competitions;
+        if(competition != null) filtered = competitions.stream().filter(c -> c.contains(competition)).toList();
+        return filtered;
     }
 
 
@@ -227,13 +230,23 @@ public class ResourceRepository {
         return graphResultOK && vectorResultOK;
     }
 
-    public List<String> getResourcesMagazines() {
-        return resourceNodeService.getResourcesMagazines();
+    public List<String> getResourcesMagazines(String magazine) {
+        List<String> magazines = resourceNodeService.getResourcesMagazines();
+        List<String> filtered = magazines;
+        if(magazine != null) filtered = magazines.stream().filter(c -> c.contains(magazine)).toList();
+        return filtered;
     }
 
     public List<String> getResourcesMagazineIssues(Optional<String> magazine) {
        String magazineName = magazine.orElse(null);
          return resourceNodeService.getResourcesMagazineIssues(magazineName);
+    }
+
+    public List<String> getResourcesPersons(String person) {
+        List<String> persons = resourceNodeService.getResourcesPersons();
+        List<String> filtered = persons;
+        if(person != null) filtered = persons.stream().filter(c -> c.contains(person)).toList();
+        return filtered;
     }
 
     public List<Resource> getUserResources(String username) {
