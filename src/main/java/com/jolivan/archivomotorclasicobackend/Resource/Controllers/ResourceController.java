@@ -45,8 +45,14 @@ public class ResourceController {
     }
     @CrossOrigin(origins = URL)
     @GetMapping(value="/resources/properties/magazines")
-    public List<String> getResourcesMagazines(@RequestParam(name = "magazine") String magazine){
-        return resourceRepository.getResourcesMagazines(magazine);
+    public List<String> getResourcesMagazinesNames(@RequestParam(name = "magazine", required = false) String magazine){
+        return resourceRepository.getResourcesMagazinesNames(magazine);
+    }
+
+    @CrossOrigin(origins = URL)
+    @GetMapping(value="/resources/properties/magazineNumbers")
+    public List<Integer> getResourcesMagazinesNumbers(@RequestParam(name = "magazine", required = false) String magazineName){
+        return resourceRepository.getResourcesMagazinesNumbers(magazineName);
     }
 
     @CrossOrigin(origins = URL)
@@ -101,28 +107,28 @@ public class ResourceController {
 
     @CrossOrigin(origins = URL)
     @GetMapping("/resources")
-    List<Resource> getResources(@RequestParam(name = "page") Optional<String> page,
-                                @RequestParam(name = "size") Optional<String> size,
-                                @RequestParam(name="title") Optional<String> title,
-                                @RequestParam(name="description") Optional<String> description,
-                                @RequestParam(name="place") Optional<String> place,
-                                @RequestParam(name="date") Optional<List<ZonedDateTime>> dates,
-                                @RequestParam(name="competition") Optional<List<String>> competitions,
-                                @RequestParam(name="category") Optional<List<String>> categories,
-                                @RequestParam(name="magazine") Optional<List<String>> magazines,
-                                @RequestParam(name="order") Optional<String> order,
-                                @RequestParam(name="noimage") Optional<Boolean> noimage
+    List<Resource> getResources(@RequestParam(name = "page", required = false) String page,
+                                @RequestParam(name = "size", required = false) String size,
+                                @RequestParam(name="title", required = false) String title,
+                                @RequestParam(name="description", required = false) String description,
+                                @RequestParam(name="date", required = false) List<ZonedDateTime> dates,
+                                @RequestParam(name="competition", required = false) String competition,
+                                @RequestParam(name="magazine", required = false) String magazine,
+                                @RequestParam(name="number", required = false) Integer number,
+                                @RequestParam(name="persons", required = false) List<String> persons,
+                                @RequestParam(name="order", required = false) String order,
+                                @RequestParam(name="noimage", required = false) Boolean noimage
                                 ) {
         List<Resource> resources = null;
 
         try {
-            resources = resourceRepository.getResources(page, size, title, description, place, dates, competitions, categories, magazines, order);
+            resources = resourceRepository.getResources(page, size, title, description, dates, competition, magazine, number, persons, order);
         } catch (Throwable e) {
             Log("!! Error: "+e.getMessage());
             return new ArrayList<>();
         }
 
-        if(noimage.isPresent() && noimage.get()){
+        if(noimage != null && noimage){
             for(Resource r : resources){
                 if(r.getImage() != null)r.setImage("noImage");
             }
@@ -145,7 +151,7 @@ public class ResourceController {
 
         Resource result = null;
         try {
-            result = resourceRepository.insertResource(creator, newResource);
+            result = resourceRepository.insertResource(creator, newResource, resourceRequestDTO);
         } catch (UserNodeNotFoundException e) {
             return new ResponseEntity<>(resourceRepository.blank(), HttpStatus.NOT_FOUND);
         }
@@ -181,7 +187,7 @@ public class ResourceController {
         }
 
         if(!deletedOK) return new ResponseEntity<>(deletedOK, HttpStatus.INTERNAL_SERVER_ERROR);
-        else return new ResponseEntity<>(deletedOK, HttpStatus.OK);
+        else return new ResponseEntity<>(deletedOK, HttpStatus.NO_CONTENT);
     }
 
 
@@ -200,23 +206,23 @@ public class ResourceController {
 
     //!========================================== TESTS ==========================================
 
-    @GetMapping("/resources/test/noimage")
-    List<Resource> getResourcesNoImageDevelop(@RequestParam(name = "page") Optional<String> page, @RequestParam(name = "size") Optional<String> size) {
-        List<Resource> resources = null;
-
-        try {
-            resources = resourceRepository.getResources(page, size, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
-        } catch (Throwable e) {
-            Log("!! Error: "+e.getMessage());
-            return new ArrayList<>();
-        }
-
-        for(Resource r : resources){
-            r.setImage("noImage");
-        }
-
-        return resources;
-    }
+//    @GetMapping("/resources/test/noimage")
+//    List<Resource> getResourcesNoImageDevelop(@RequestParam(name = "page") Optional<String> page, @RequestParam(name = "size") Optional<String> size) {
+//        List<Resource> resources = null;
+//
+//        try {
+//            resources = resourceRepository.getResources(page, size, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+//        } catch (Throwable e) {
+//            Log("!! Error: "+e.getMessage());
+//            return new ArrayList<>();
+//        }
+//
+//        for(Resource r : resources){
+//            r.setImage("noImage");
+//        }
+//
+//        return resources;
+//    }
 
     @GetMapping(value="/resources/test/distance")
     public ResponseEntity<Resource> testResource() {

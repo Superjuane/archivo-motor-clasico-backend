@@ -27,7 +27,7 @@ public class ResourceFormToResourceConverter {
     private static Resource toResourcePrivate(ResourceRequestDTO resourceRequestDTO, Boolean completed, Boolean withoutImage) throws ParameterMissingExeption {
         Resource newResource = new Resource();
 
-        newResource.setId(resourceRequestDTO.getId());
+//        newResource.setId(resourceRequestDTO.getId());
 
         List<String> missingParameters = new ArrayList<String>();
 

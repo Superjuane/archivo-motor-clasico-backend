@@ -3,6 +3,7 @@ package com.jolivan.archivomotorclasicobackend.Resource.Controllers;
 import com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControl.Exeptions.ResourceForbiddenException;
 import com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControl.Exeptions.ResourceNotFoundException;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceRequestDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceUpdateDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers.ResourceNodeService;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities.ResourceNode;
@@ -72,53 +73,64 @@ public class ResourceRepository {
         return resource;
     }
 
-    public List<Resource> getResources(Optional<String> page,
-                                       Optional<String> size,
-                                       Optional<String> title,
-                                       Optional<String> description,
-                                       Optional<String> place,
-                                       Optional<List<ZonedDateTime>> dates,
-                                       Optional<List<String>> competitions,
-                                       Optional<List<String>> categories,
-                                       Optional<List<String>> magazines,
-                                       Optional<String> order) {
+    public List<Resource> getResources(String page, String size, String title, String description, List<ZonedDateTime> dates, String competition, String magazine, Integer number, List<String> persons, String order) {
+
         List<Resource> result;
 
-        if (title.isPresent()
-                || description.isPresent()
-                || place.isPresent()
-                || dates.isPresent()
-                || competitions.isPresent()
-                || categories.isPresent()
-                || magazines.isPresent()
+        if (title != null
+                || description != null
+                || dates != null
+                || competition != null
+                || magazine != null
+                || number != null
+                || persons != null
+                || order != null
         ) {
-            result = getSomeResources(title.orElse(null),
-                    description.orElse(null),
-                    place.orElse(null),
-                    dates.orElse(null),
-                    competitions.orElse(null),
-                    categories.orElse(null),
-                    magazines.orElse(null)
+            result = getSomeResources(title,
+                    description,
+                    dates,
+                    competition,
+                    magazine,
+                    number,
+                    persons,
+                    order
             );
-        } else if (page.isPresent() && size.isPresent()) {
-            result = getResources(Integer.parseInt(page.get()), Integer.parseInt(size.get()));
+        } else if (page != null && size != null) {
+            result = getResources(Integer.parseInt(page), Integer.parseInt(size));
         } else {
             result = getResources(0, 20);
         }
 
-
         return result;
     }
 
-    private List<Resource> getSomeResources(String title, String description, String place, List<ZonedDateTime> dates, List<String> competitions, List<String> categories, List<String> magazines) {
+    private List<Resource> getSomeResources(String title, String description, List<ZonedDateTime> dates, String competition, String magazine, Integer number, List<String> persons, String order) {
         if((title != null && !title.isEmpty()) || (description != null && !description.isEmpty())){
-            return searchInGraphAndInVector(title, description, place, dates, competitions, categories, magazines);
+            return null;
+//            return searchInGraphAndInVector(title, description, dates, competition, magazine, number persons, order);
         }else{
-            return searchOnlyInGraph(place, dates, competitions, categories, magazines);
+            return searchOnlyInGraph(dates, competition, magazine, number, persons, order);
         }
     }
 
-    private List<Resource> searchInGraphAndInVector(String title, String description, String place, List<ZonedDateTime> dates, List<String> competitions, List<String> categories, List<String> magazines) {
+//    private List<Resource> searchInGraphAndInVector(String title, String description, List<ZonedDateTime> dates, String competition, Map<String, String> magazine, List<String> persons, String order) {
+//        List<Resource> resources = new ArrayList<>();
+//
+//        List<ResourceNode> graphQueryResponse = resourceNodeService.searchResources(title, description, dates, competition, magazine, persons, order);
+//
+//        for(ResourceNode r : graphQueryResponse){
+//            Resource resource = ResourceNodeToResource.toResource(r);
+//
+//            try {
+//                ResourceVectorDatabase vectorQueryResponse = resourceVectorDatabaseService.getResource(r.getResourceID());
+//                ResourceVectorDatabaseToResource.completeResource(resource, vectorQueryResponse);
+//            } catch (IdIsNullException e) {
+//                LogError("Error getting ResourceVectorDatabase {id:"+ r.getResourceID() +"}...");
+//            }
+//            resources.add(resource);
+//        }
+//        return resources;
+//    }
 //        List<Resource> resources = new ArrayList<>();
 //
 //        List<ResourceVectorDatabase> vectorQueryResponse = resourceVectorDatabaseService.searchResources(title, description);
@@ -129,13 +141,12 @@ public class ResourceRepository {
 //        }
 //
 //        return resources;
-        return null;
-    }
+//    }
 
-    private List<Resource> searchOnlyInGraph(String place, List<ZonedDateTime> dates, List<String> competitions, List<String> categories, List<String> magazines) {
+    private List<Resource> searchOnlyInGraph(List<ZonedDateTime> dates, String competition, String magazine, Integer number, List<String> persons, String order) {
         List<Resource> resources = new ArrayList<>();
 
-            List<ResourceNode> graphQueryResponse = resourceNodeService.searchResources(place, dates, competitions, magazines);
+            List<ResourceNode> graphQueryResponse = resourceNodeService.searchResources(dates, competition, magazine, number, persons, order);
 
             for(ResourceNode r : graphQueryResponse){
                 Resource resource = ResourceNodeToResource.toResource(r);
@@ -174,7 +185,7 @@ public class ResourceRepository {
         return blank();
     }
 
-    public Resource insertResource(String creator, Resource newResource){
+    public Resource insertResource(String creator, Resource newResource, ResourceRequestDTO resourceRequestDTO){
 
         //CHECK IF IMAGE ALREADY EXISTS
         String existingId = resourceVectorDatabaseService.isImageAlredyInDatabase(newResource.getImage());
@@ -186,8 +197,7 @@ public class ResourceRepository {
         //INSERT INTO GRAPH DB
 
         UserNode user = userNodeService.getUserNodeByUsername(creator); //throws UserNodeNotFound
-        ResourceNode newResourceGraph = new ResourceNode(newResource);
-        ResourceNode queryResultG = resourceNodeService.addResourceNode(newResourceGraph);
+        ResourceNode queryResultG = resourceNodeService.addResourceNode(resourceRequestDTO);
         resourceNodeService.joinResourceToUser(queryResultG.getId(), user.getName());
 
         //INSERT INTO VECTOR DB
@@ -230,11 +240,18 @@ public class ResourceRepository {
         return graphResultOK && vectorResultOK;
     }
 
-    public List<String> getResourcesMagazines(String magazine) {
-        List<String> magazines = resourceNodeService.getResourcesMagazines();
+    public List<String> getResourcesMagazinesNames(String magazine) {
+        List<String> magazines = resourceNodeService.getResourcesMagazinesNames();
         List<String> filtered = magazines;
         if(magazine != null) filtered = magazines.stream().filter(c -> c.contains(magazine)).toList();
         return filtered;
+    }
+
+    public List<Integer> getResourcesMagazinesNumbers(String magazineName) {
+        List<Integer> magazinesNumbers = resourceNodeService.getResourcesMagazinesNumbers(magazineName);
+//        List<int> filtered = magazinesNumbers;
+//        if(magazineName != null) filtered = magazines.stream().filter(c -> c.contains(magazine)).toList();
+        return magazinesNumbers;
     }
 
     public List<String> getResourcesMagazineIssues(Optional<String> magazine) {
@@ -294,4 +311,5 @@ public class ResourceRepository {
 
         return result;
     }
+
 }

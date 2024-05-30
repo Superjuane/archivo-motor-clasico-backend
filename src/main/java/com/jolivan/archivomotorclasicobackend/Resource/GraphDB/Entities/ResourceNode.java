@@ -2,6 +2,7 @@ package com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Entities;
 
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.*;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceRequestDTO;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities.UserNode;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -67,4 +68,5 @@ public class ResourceNode {
 
         this.state = resource.getState() != null? resource.getState() : null;
     }
+
 }

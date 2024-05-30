@@ -205,8 +205,9 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
         Map<String, Object> properties = new HashMap<>();
         properties.put("title", data.get("title"));
         properties.put("description", data.get("description"));
-        if(data.get("image").toString().startsWith("data:image/jpeg;base64,")){
-            data.put("image", data.get("image").toString().replace("data:image/jpeg;base64,", ""));
+        if(data.get("image").toString().startsWith("data:image/")){
+            String procesedImageString = data.get("image").toString().replace("data:image/jpeg;base64,", "").replace("data:image/png;base64,", "");
+            data.put("image", procesedImageString);
         }
         properties.put("image", data.get("image"));
 

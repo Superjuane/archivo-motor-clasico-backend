@@ -33,10 +33,10 @@ public class ResourceNodeController {
         return ResourceNodeService.getResourceNodeById(resourceNodeId);
     }
 
-    @PostMapping(value = "/resourcenodes", consumes = {"application/json"})
-    public ResourceNode addResourceNode(@RequestBody ResourceNode ResourceNode){
-        return ResourceNodeService.addResourceNode(ResourceNode);
-    }
+//    @PostMapping(value = "/resourcenodes", consumes = {"application/json"})
+//    public ResourceNode addResourceNode(@RequestBody ResourceNode ResourceNode){
+//        return ResourceNodeService.addResourceNode(ResourceNode);
+//    }
 
     @PutMapping(value = "/resourcenodes/:id", consumes = {"application/json"})
     public ResourceNode updateResourceNode(@RequestBody ResourceUpdateDTO resourceUpdateDTO, @PathVariable String resourceNodeId)  {
@@ -48,13 +48,13 @@ public class ResourceNodeController {
         ResourceNodeService.deleteResourceNode(resourceNodeId);
     }
 
-    @GetMapping("/resourcenodes/test/query")
-    public List<ResourceNode> searchResources(@RequestParam(name = "place", required = false) String place,
-                                             @RequestParam(name = "date", required = false) List<ZonedDateTime> dates,
-                                             @RequestParam(name = "competition", required = false) List<String> competitions,
-                                             @RequestParam(name = "magazine", required = false) List<String> magazines){
-        return ResourceNodeService.searchResources(place, dates, competitions, magazines);
-    }
+//    @GetMapping("/resourcenodes/test/query")
+//    public List<ResourceNode> searchResources(@RequestParam(name = "place", required = false) String place,
+//                                             @RequestParam(name = "date", required = false) List<ZonedDateTime> dates,
+//                                             @RequestParam(name = "competition", required = false) List<String> competitions,
+//                                             @RequestParam(name = "magazine", required = false) List<String> magazines){
+//        return ResourceNodeService.searchResources(place, dates, competitions, magazines);
+//    }
 
     @GetMapping("/resourcenodes/test/joinUser")
     public ResponseEntity<ResourceNode> joinResourceToUser(
