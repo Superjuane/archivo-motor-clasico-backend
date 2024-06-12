@@ -10,11 +10,14 @@ import io.weaviate.client.base.Result;
 import io.weaviate.client.base.WeaviateErrorMessage;
 import io.weaviate.client.v1.data.model.WeaviateObject;
 import com.jolivan.archivomotorclasicobackend.Utils.Pair;
+import io.weaviate.client.v1.filters.WhereFilter;
 import io.weaviate.client.v1.graphql.model.GraphQLResponse;
 import io.weaviate.client.v1.graphql.query.argument.NearImageArgument;
+import io.weaviate.client.v1.graphql.query.argument.NearTextArgument;
 import io.weaviate.client.v1.graphql.query.fields.Field;
 import org.springframework.stereotype.Repository;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +62,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
         }
 
 //        TODO: WeaviateResultConverter.resultToResourceList(DBresult.getResult().getData());
-        result = (List<Map<String, Object>>)WeaviateResultConverter.ResultGraphQLResponseToMap(DBresult).get("data");
+        result = (List<Map<String, Object>>)WeaviateResultConverter.ResultGraphQLResponseToMap(DBresult, "Resource").get("data");
 
 //        Object r = DBresult.getResult().getData();
 //        LinkedTreeMap<?,?> rl = (LinkedTreeMap<?,?>) r;
@@ -105,7 +108,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
 //                .withNearText(explore)
                 .run();
 
-        Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(queryResult);
+        Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(queryResult, "Resource");
         for (Map<String, Object> r : (List<Map<String, Object>>) DBresultMap.get("data")) {
             result.add((String) r.get("id"));
         }
@@ -175,7 +178,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
         NearImageArgument.NearImageArgumentBuilder nearImageArgumentBuilder = NearImageArgument.builder().image(image);
 
         Field title = Field.builder()
-                .name("title description")
+                .name("title description image")
                 .build();
         Field _additional = Field.builder()
                 .name("_additional")
@@ -191,12 +194,62 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
                 .withLimit(limit)
                 .run();
 
-         Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(DBresultRaw);
+         Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(DBresultRaw, "Resource");
          if(DBresultMap.containsKey("hasErrors") && (Boolean) DBresultMap.get("hasErrors")){
              throw new Throwable("Error --> ResourceVectorDatabaseRepositoryWeaviateAdapter.getResourcesByImageSimilarity: Error...");
          }
 
          return (List<Map<String, Object>>) DBresultMap.get("data");
+    }
+
+    @Override
+    public List<Map<String, Object>> searchResources(String title, String description) {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+
+        String titleProcessed = " - ", descriptionProcessed = " - ";
+        if(title != null){
+            title = title.toLowerCase();
+            title = title.replace('\"', ' ');
+            titleProcessed = Normalizer.normalize(title, Normalizer.Form.NFKD);
+        }
+        if(description != null){
+            description = description.toLowerCase();
+            description = description.replace('\"', ' ');
+            descriptionProcessed = Normalizer.normalize(description, Normalizer.Form.NFKD);
+        }
+        String[] concepts = new String[]{titleProcessed, descriptionProcessed};
+
+//        NearTextArgument nearTextArgument = NearTextArgument.builder().concepts(concepts).build();
+        NearTextArgument nearTextArgument = client.graphQL().arguments().nearTextArgBuilder()
+                .concepts(concepts)
+//                .distance(0.6f) // use .certainty(0.7f) prior to v1.14 //TODO: when added more data, make sure to change this value
+                .build();
+
+        Field fields = Field.builder()
+                .name("title description resourceId")
+                .build();
+        Field _additional = Field.builder()
+                .name("_additional")
+                .fields(new Field[]{
+                        Field.builder().name("id").build(),
+                        Field.builder().name("distance").build()
+                }).build();
+
+        Result<GraphQLResponse> DBresultRaw = client.graphQL().get()
+                .withClassName("Text")
+                .withFields(fields, _additional)
+                .withNearText(nearTextArgument)
+                .run();
+
+        Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(DBresultRaw, "Text");
+        if(DBresultMap.containsKey("hasErrors") && (Boolean) DBresultMap.get("hasErrors")){
+            throw new VectorDatabaseNotWorkingException("Error --> ResourceVectorDatabaseRepositoryWeaviateAdapter.searchResources: Error...");
+        }
+
+
+
+        return (List<Map<String, Object>>) DBresultMap.get("data");
     }
 
     @Override
@@ -261,6 +314,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
 
     @Override
     public Boolean deleteResource(String id) {
+
         Result<Boolean> DBresult = client.data()
                 .deleter()
                 .withClassName("Resource")
@@ -268,5 +322,105 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
                 .run();
 
         return DBresult.getResult();
+    }
+
+    @Override
+    public Boolean insertText(Map<String, Object> textData) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("title", textData.get("title"));
+        properties.put("description", textData.get("description"));
+        properties.put("resourceId", textData.get("id"));
+
+        Result<WeaviateObject> DBresultRaw = client.data()
+                .creator()
+                .withClassName("Text")
+                .withProperties(properties)
+                .run();
+
+        Map<String, Object> DBresultMap = WeaviateResultConverter.ResultWeaviateObjectToMap(DBresultRaw);
+        if(DBresultMap.containsKey("hasErrors") && (Boolean) DBresultMap.get("hasErrors")){
+            throw new VectorDatabaseNotWorkingException("Error --> ResourceVectorDatabaseRepositoryWeaviateAdapter.insertText: Error...");
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean updateText(String resourceId, Map<String, Object> data) {
+
+        Field fields = Field.builder()
+                .name("resourceId")
+                .build();
+        Field _additional = Field.builder()
+                .name("_additional")
+                .fields(new Field[]{
+                        Field.builder().name("id").build(),
+                }).build();
+
+        WhereFilter whereFilter = WhereFilter.builder()
+                .path(new String[]{"resourceId"})
+                .operator("Equal")
+                .valueText(resourceId)
+                .build();
+
+        Result<GraphQLResponse> DBresultRaw = client.graphQL().get()
+                .withClassName("Text")
+                .withFields(fields, _additional)
+                .withWhere(whereFilter)
+                .run();
+
+        Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(DBresultRaw, "Text");
+
+        String id = (String)((Map<String, Object>)((List<Map<String, Object>>)DBresultMap.get("data")).get(0)).get("id");
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("title", data.get("title"));
+        properties.put("description", data.get("description"));
+
+        Result<Boolean> DBresult = client.data()
+                .updater()
+                .withMerge()
+                .withID(id)
+                .withClassName("Text")
+                .withProperties(properties)
+                .run();
+        return DBresult.getResult();
+    }
+
+    @Override
+    public Boolean deleteText(String resourceId) {
+
+        Field fields = Field.builder()
+                .name("resourceId")
+                .build();
+        Field _additional = Field.builder()
+                .name("_additional")
+                .fields(new Field[]{
+                        Field.builder().name("id").build(),
+                }).build();
+
+        WhereFilter whereFilter = WhereFilter.builder()
+                .path(new String[]{"resourceId"})
+                .operator("Equal")
+                .valueText(resourceId)
+                .build();
+
+        Result<GraphQLResponse> DBresultRaw = client.graphQL().get()
+                .withClassName("Text")
+                .withFields(fields, _additional)
+                .withWhere(whereFilter)
+                .run();
+
+        Map<String, Object> DBresultMap = WeaviateResultConverter.ResultGraphQLResponseToMap(DBresultRaw, "Text");
+
+        String id = (String)((Map<String, Object>)((List<Map<String, Object>>)DBresultMap.get("data")).get(0)).get("id");
+
+        Result<Boolean> DBresult = client.data()
+                .deleter()
+                .withClassName("Text")
+                .withID(id)
+                .run();
+
+        return DBresult.getResult();
+
     }
 }

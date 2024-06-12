@@ -25,7 +25,7 @@ public class UpvotesController {
     }
 
     @GetMapping("/upvotes/{commentId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> getUpvotesByCommentId(@PathVariable Long commentId) {
         Map<String, String> body = new HashMap<>();
         UpvoteResponseDTO upvotes;
@@ -46,7 +46,7 @@ public class UpvotesController {
     }
 
     @PostMapping("/upvotes/{commentId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> upvoteComment(@PathVariable Long commentId) {
         Map<String, String> body = new HashMap<>();
         UpvoteResponseDTO upvotes;
@@ -70,7 +70,7 @@ public class UpvotesController {
     }
 
     @DeleteMapping("/upvotes/{commentId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> deleteUpvote(@PathVariable Long commentId) {
         Map<String, String> body = new HashMap<>();
         UpvoteResponseDTO upvotes;

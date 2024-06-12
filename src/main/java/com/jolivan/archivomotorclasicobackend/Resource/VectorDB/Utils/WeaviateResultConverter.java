@@ -20,7 +20,7 @@ public class WeaviateResultConverter {
     public static final String ERROR_NUMBER = "errorNumber";
     public static final String ERROR_MESSAGES = "errorMessages";
 
-    public static Map<String, Object> ResultGraphQLResponseToMap(Result<GraphQLResponse> DBresult) {
+    public static Map<String, Object> ResultGraphQLResponseToMap(Result<GraphQLResponse> DBresult, String className) {
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> resultList = new ArrayList<>();
 
@@ -40,11 +40,21 @@ public class WeaviateResultConverter {
 
         LinkedTreeMap<?,?> data = (LinkedTreeMap<?,?>) response.getData();
         LinkedTreeMap<?,?> Get = (LinkedTreeMap<?,?>) data.get("Get");
-        ArrayList<LinkedTreeMap<?,?>> resources = (ArrayList<LinkedTreeMap<?,?>>) Get.get("Resource");
-        for (LinkedTreeMap<?,?> resource : resources) {
-            Map<String, Object> map = WeaviateResourceToMap(resource);
-            resultList.add(map);
+        ArrayList<LinkedTreeMap<?,?>> elements = (ArrayList<LinkedTreeMap<?,?>>) Get.get(className);
+        if(className.equals("Resource")) {
+            for (LinkedTreeMap<?, ?> resource : elements) {
+                Map<String, Object> map = WeaviateResourceToMap(resource);
+                resultList.add(map);
+            }
         }
+        else if(className.equals("Text")){
+            for (LinkedTreeMap<?, ?> text : elements) {
+                Map<String, Object> map = WeaviateResourceToMap(text);
+                resultList.add(map);
+            }
+
+        }
+
         result.put("data", resultList);
 
         /*
@@ -61,16 +71,16 @@ public class WeaviateResultConverter {
         return result;
     }
 
-    public static Map<String, Object> WeaviateResourceToMap(LinkedTreeMap<?,?> magazine){
+    public static Map<String, Object> WeaviateResourceToMap(LinkedTreeMap<?,?> element){
         Map<String, Object> result = new HashMap<>();
 
-        magazine.keySet().forEach(key -> {
+        element.keySet().forEach(key -> {
             if(key.equals(ADDITIONAL)) return;
-            result.put(key.toString(), magazine.get(key));
+            result.put(key.toString(), element.get(key));
         });
 
-        if(magazine.containsKey(ADDITIONAL)){
-            LinkedTreeMap<?,?> _additional = (LinkedTreeMap<?,?>) magazine.get(ADDITIONAL);
+        if(element.containsKey(ADDITIONAL)){
+            LinkedTreeMap<?,?> _additional = (LinkedTreeMap<?,?>) element.get(ADDITIONAL);
             _additional.keySet().forEach(key -> {
                 result.put(key.toString(), _additional.get(key));
             });
@@ -145,6 +155,25 @@ public class WeaviateResultConverter {
             if(object.getVectorWeights() != null) result.put("vectorWeights", object.getVectorWeights());
         }
 
+        return result;
+    }
+
+    public static Map<String, Object> ResultWeaviateObjectToMap(Result<WeaviateObject> DBresult) {
+        Map<String, Object> result = new HashMap<>();
+        WeaviateObject object = DBresult.getResult();
+
+        if(DBresult.hasErrors()){
+            result.put(HAS_ERRORS, true);
+            WeaviateError error = DBresult.getError();
+            result.put(ERROR_NUMBER, error.getStatusCode());
+            result.put(ERROR_MESSAGES, error.getMessages());
+        } else {
+            result.put("id", object.getId());
+            result.put("className", object.getClassName());
+            result.put("creationTimeUnix", object.getCreationTimeUnix());
+            result.put("lastUpdateTimeUnix", object.getLastUpdateTimeUnix());
+            if (object.getProperties() != null) result.putAll(object.getProperties());
+        }
         return result;
     }
 }

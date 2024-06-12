@@ -11,7 +11,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -29,6 +32,7 @@ public class WebSecurityConfiguration  {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+
                 .csrf(AbstractHttpConfigurer::disable) // Disables CSRF protection, common in stateless REST APIs.
                 .authorizeRequests(authorize -> authorize
                         .requestMatchers(
@@ -40,6 +44,7 @@ public class WebSecurityConfiguration  {
                                 new AntPathRequestMatcher("/resources", "GET"),
                                 new AntPathRequestMatcher("/resources/properties/*", "GET"),
                                 new AntPathRequestMatcher("/resources/*", "GET"),
+                                new AntPathRequestMatcher("/resources/imagesearch", "POST"),
                                 new AntPathRequestMatcher("/collections", "GET"),
                                 new AntPathRequestMatcher("/collections/*", "GET"),
                                 new AntPathRequestMatcher("/comments", "GET"),
@@ -53,6 +58,7 @@ public class WebSecurityConfiguration  {
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Configures session management to be stateless.
+//                .cors(cors -> cors.disable()); // Disables CORS protection, common in stateless REST APIs.
 //                .addFilterBefore(new AuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // Adds a filter to validate API keys.
         return http.build(); // Builds and returns the SecurityFilterChain.
     }

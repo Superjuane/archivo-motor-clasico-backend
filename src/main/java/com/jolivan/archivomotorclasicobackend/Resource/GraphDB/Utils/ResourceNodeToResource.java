@@ -65,28 +65,50 @@ public class ResourceNodeToResource {
         return resource;
     }
 
-    public static void completeResource(Resource resource, ResourceNode graphQueryResponse) {
-        resource.setId(graphQueryResponse.getResourceID());
-        resource.setTitle(graphQueryResponse.getTitle());
-        if(graphQueryResponse.getCreator() != null) {
-            resource.setCreator(graphQueryResponse.getCreator().getName());
+    public static void completeResource(Resource resource, ResourceNode resourceNode) {
+        resource.setId(resourceNode.getResourceID());
+        resource.setTitle(resourceNode.getTitle());
+
+        if(resourceNode.getCreator() != null) {
+            resource.setCreator(resourceNode.getCreator().getName());
         }
 
         List<Property> properties = new ArrayList<>();
-        if(graphQueryResponse.getCompetition() != null) {
+
+        if(resourceNode.getCompetition() != null) {
             Competition competition = new Competition();
-            competition.setName(graphQueryResponse.getCompetition());
+            competition.setName(resourceNode.getCompetition());
             properties.add(competition);
         }
 
-        if(graphQueryResponse.getMagazineIssue() != null) {
+
+        if(resourceNode.getMagazineIssue() != null) {
             MagazineIssue magazineIssue = new MagazineIssue();
-            magazineIssue.setName(graphQueryResponse.getMagazineIssue().getName());
-            magazineIssue.setTitle(graphQueryResponse.getMagazineIssue().getTitle());
-            magazineIssue.setNumber(graphQueryResponse.getMagazineIssue().getNumber());
-            magazineIssue.setDate(graphQueryResponse.getMagazineIssue().getDate());
-            magazineIssue.setCountry(graphQueryResponse.getMagazineIssue().getCountry());
+            magazineIssue.setName(resourceNode.getMagazineIssue().getName());
+            magazineIssue.setTitle(resourceNode.getMagazineIssue().getTitle());
+            magazineIssue.setNumber(resourceNode.getMagazineIssue().getNumber());
+            magazineIssue.setDate(resourceNode.getMagazineIssue().getDate());
+            magazineIssue.setCountry(resourceNode.getMagazineIssue().getCountry());
             properties.add(magazineIssue);
+        }
+
+        if(resourceNode.getPersons() != null){
+            List<Person> personsList = new ArrayList<>();
+            for (PersonNode personNode : resourceNode.getPersons()) {
+                Person person = new Person();
+                person.setName(personNode.getName());
+                person.setAlias(personNode.getAlias());
+                personsList.add(person);
+            }
+            Persons persons = new Persons();
+            persons.setPersons(personsList);
+            properties.add(persons);
+        }
+
+        Date date = new Date();
+        if(resourceNode.getDate() != null){
+            date.setDate(resourceNode.getDate());
+            properties.add(date);
         }
 
         resource.setProperties(properties);

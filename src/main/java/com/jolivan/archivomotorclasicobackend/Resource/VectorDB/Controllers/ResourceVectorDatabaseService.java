@@ -5,6 +5,7 @@ import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.Exce
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabase;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.IdIsNullException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.ImageAlredyExistsException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabaseImageSearchListsResponse;
 import com.jolivan.archivomotorclasicobackend.Utils.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -99,6 +100,41 @@ public class ResourceVectorDatabaseService {
         return resources;
     }
 
+    public List<ResourceVectorDatabase> searchResources(String title, String description) {
+        List<Map<String, Object>> textSearchQueryResult;
+
+        try {
+            textSearchQueryResult = dbRepository.searchResources(title, description);
+        } catch (Throwable e) {
+            Log("!! Error: "+e.getMessage());
+            return null;
+        }
+
+
+
+        List<ResourceVectorDatabase> resources = new ArrayList<ResourceVectorDatabase>();
+        System.out.println("In search by text similarity, distances are:");
+        for (Map<String, Object> textResult : textSearchQueryResult) {
+            System.out.println("   id: "+textResult.get("resourceId")+" - "+textResult.get("distance"));
+            ResourceVectorDatabase resource = new ResourceVectorDatabase();
+            resource.setID((String) textResult.get("resourceId"));
+            resource.setTitle((String) textResult.get("title"));
+            resource.setDescription((String) textResult.get("description"));
+
+            Map<String, Object> resourceQueryResult;
+            try {
+                resourceQueryResult = dbRepository.getResourceById(resource.getID());
+            } catch (Throwable e) {
+                Log("!! Error: "+e.getMessage());
+                return null;
+            }
+
+            resource.setImage((String) resourceQueryResult.get("image"));
+            resources.add(resource);
+        }
+
+        return resources;
+    }
     public List<String> getResourcesIds(){
         return dbRepository.getAllResourcesIds();
     }
@@ -109,18 +145,26 @@ public class ResourceVectorDatabaseService {
 
 
     public ResourceVectorDatabase addResource(ResourceVectorDatabase newResourceVector) throws ImageAlredyExistsException {
-        Map<String, Object> data = new HashMap<>();
-        data.put("title", newResourceVector.getTitle());
-        data.put("description", newResourceVector.getDescription());
-        data.put("image", newResourceVector.getImage());
+        Map<String, Object> imageData = new HashMap<>();
+        imageData.put("title", newResourceVector.getTitle());
+        imageData.put("description", newResourceVector.getDescription());
+        imageData.put("image", newResourceVector.getImage());
 
-        Map<String, Object> queryResult = dbRepository.insertResource(data);
+        Map<String, Object> imageInsertResult = dbRepository.insertResource(imageData);
+
+        Map<String, Object> textData = new HashMap<>();
+        textData.put("title", newResourceVector.getTitle());
+        textData.put("description", newResourceVector.getDescription());
+        textData.put("id", imageInsertResult.get("id"));
+
+        Boolean textInserted = dbRepository.insertText(textData);
+        if(!textInserted) System.out.println("!! Error inserting text");
 
         ResourceVectorDatabase resource = new ResourceVectorDatabase();
-        resource.setID((String) queryResult.get("id"));
-        resource.setTitle((String)((HashMap) queryResult.get("properties")).get("title"));
-        resource.setDescription((String)((HashMap) queryResult.get("properties")).get("description"));
-        resource.setImage((String)((HashMap) queryResult.get("properties")).get("image"));
+        resource.setID((String) imageInsertResult.get("id"));
+        resource.setTitle((String)((HashMap) imageInsertResult.get("properties")).get("title"));
+        resource.setDescription((String)((HashMap) imageInsertResult.get("properties")).get("description"));
+        resource.setImage((String)((HashMap) imageInsertResult.get("properties")).get("image"));
 
         return resource;
     }
@@ -155,6 +199,11 @@ public class ResourceVectorDatabaseService {
         } catch (Throwable e) {
             return false;
         }
+        try{
+            dbRepository.deleteText(requestId);
+        } catch (Throwable e) {
+            return false;
+        }
         return true;
     }
 
@@ -166,7 +215,9 @@ public class ResourceVectorDatabaseService {
         queryResult.put("description", resourceUpdateDTO.getDescription());
 
         Boolean updatedOK = dbRepository.updateResource(id, queryResult);
-        if(!updatedOK) throw new ResourceVectorDatabaseNotUpdatedException("Resource not updated");
+        if(!updatedOK) throw new ResourceVectorDatabaseNotUpdatedException("Resource (image) not updated");
+        updatedOK = dbRepository.updateText(id, queryResult);
+        if(!updatedOK) throw new ResourceVectorDatabaseNotUpdatedException("Resource (text) not updated");
 
         ResourceVectorDatabase resource = new ResourceVectorDatabase();
         resource.setID(id);
@@ -174,5 +225,28 @@ public class ResourceVectorDatabaseService {
         resource.setDescription(resourceUpdateDTO.getDescription());
         resource.setImage((String)queryResult.get("image"));
         return resource;
+    }
+
+    public ResourceVectorDatabaseImageSearchListsResponse searchResourcesByImage(String image, int limit) {
+        List<ResourceVectorDatabase> similar = new ArrayList<>(), lessSimilar = new ArrayList<>();
+        try{
+            List<Map<String, Object>> queryResult = dbRepository.getResourcesByImageSimilarity(image, limit);
+            for(Map<String, Object> r : queryResult){ //TODO: make it so > than mean is similar, < than mean is lessSimilar
+                System.out.println("   id: "+r.get("id")+" - "+r.get("distance"));
+                if(Double.compare((double)r.get("distance"), 3.5762787E-5) > 0 ) {
+                    ResourceVectorDatabase resource = new ResourceVectorDatabase();
+                    resource.setID((String) r.get("id"));
+                    resource.setTitle((String) r.get("title"));
+                    resource.setDescription((String) r.get("description"));
+                    resource.setImage((String) r.get("image"));
+
+                    if(Double.compare((double)r.get("distance"), 0.5) < 0 ) similar.add(resource); //distance is less than 0.5
+                    else lessSimilar.add(resource);
+                }
+            }
+        } catch (Throwable e) {
+            Log("Error in --> ResourceVectorDatabaseService.isImageAlredyInDatabase: "+e.getMessage());
+        }
+        return new ResourceVectorDatabaseImageSearchListsResponse(similar, lessSimilar);
     }
 }

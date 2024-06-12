@@ -35,6 +35,8 @@ public interface ResourceVectorDatabaseRepository {
 
     public List<Map<String, Object>> getResourcesByImageSimilarity(String title, Integer limit) throws Throwable;
 
+    List<Map<String, Object>> searchResources(String title, String description);
+
     /**
      * Inserts data into the database
      * @param data Data to insert
@@ -55,5 +57,9 @@ public interface ResourceVectorDatabaseRepository {
      */
     public Boolean deleteResource(String id);
 
+    public Boolean insertText(Map<String, Object> textData);
 
+    public Boolean updateText(String id, Map<String, Object> data);
+
+    public Boolean deleteText(String id);
 }

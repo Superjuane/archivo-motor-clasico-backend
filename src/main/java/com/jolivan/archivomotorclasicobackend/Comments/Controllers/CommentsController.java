@@ -29,7 +29,7 @@ public class CommentsController {
     }
 
     @GetMapping("/comments")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> getComments(@RequestParam(name="resource", required = false) String resourceId, @RequestParam(name="comment",required = false) Long commentParentId) {
         Map<String, String>  body = new HashMap<>();
 
@@ -64,7 +64,7 @@ public class CommentsController {
     }
 
     @PostMapping("/comments")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> createComment(@RequestBody CommentDTO commentDTO) {
         Map<String, String> body = new HashMap<>();
 
@@ -94,7 +94,7 @@ public class CommentsController {
 
 
     @DeleteMapping("/comments/{id}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> deleteComment(@PathVariable Long id) {
         Map<String, String> body = new HashMap<>();
 

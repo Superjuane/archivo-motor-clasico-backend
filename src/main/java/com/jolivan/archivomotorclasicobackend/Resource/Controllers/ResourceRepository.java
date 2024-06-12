@@ -2,7 +2,10 @@ package com.jolivan.archivomotorclasicobackend.Resource.Controllers;
 
 import com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControl.Exeptions.ResourceForbiddenException;
 import com.jolivan.archivomotorclasicobackend.Resource.Controllers.ExeptionControl.Exeptions.ResourceNotFoundException;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.*;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.Properties.Date;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.Resource;
+import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceImageSimilaritySearchResponseDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceRequestDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.Entities.ResourceUpdateDTO;
 import com.jolivan.archivomotorclasicobackend.Resource.GraphDB.Controllers.ResourceNodeService;
@@ -14,6 +17,7 @@ import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.Reso
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabase;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.IdIsNullException;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Controllers.ExceptionControl.Exceptions.ImageAlredyExistsException;
+import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Entities.ResourceVectorDatabaseImageSearchListsResponse;
 import com.jolivan.archivomotorclasicobackend.Resource.VectorDB.Utils.ResourceVectorDatabaseToResource;
 import com.jolivan.archivomotorclasicobackend.Security.SecUtils.Session;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.UserNodeService;
@@ -22,9 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.Log;
 import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.LogError;
@@ -106,42 +108,124 @@ public class ResourceRepository {
 
     private List<Resource> getSomeResources(String title, String description, List<ZonedDateTime> dates, String competition, String magazine, Integer number, List<String> persons, String order) {
         if((title != null && !title.isEmpty()) || (description != null && !description.isEmpty())){
-            return null;
-//            return searchInGraphAndInVector(title, description, dates, competition, magazine, number persons, order);
+            return searchInGraphAndInVector(title, description, dates, competition, magazine, number, persons, order);
         }else{
             return searchOnlyInGraph(dates, competition, magazine, number, persons, order);
         }
     }
 
-//    private List<Resource> searchInGraphAndInVector(String title, String description, List<ZonedDateTime> dates, String competition, Map<String, String> magazine, List<String> persons, String order) {
-//        List<Resource> resources = new ArrayList<>();
-//
-//        List<ResourceNode> graphQueryResponse = resourceNodeService.searchResources(title, description, dates, competition, magazine, persons, order);
-//
-//        for(ResourceNode r : graphQueryResponse){
-//            Resource resource = ResourceNodeToResource.toResource(r);
-//
-//            try {
-//                ResourceVectorDatabase vectorQueryResponse = resourceVectorDatabaseService.getResource(r.getResourceID());
-//                ResourceVectorDatabaseToResource.completeResource(resource, vectorQueryResponse);
-//            } catch (IdIsNullException e) {
-//                LogError("Error getting ResourceVectorDatabase {id:"+ r.getResourceID() +"}...");
-//            }
-//            resources.add(resource);
-//        }
-//        return resources;
-//    }
-//        List<Resource> resources = new ArrayList<>();
-//
-//        List<ResourceVectorDatabase> vectorQueryResponse = resourceVectorDatabaseService.searchResources(title, description);
-//        List<String> ids = new ArrayList<>();
-//
-//        for (ResourceVectorDatabase r : vectorQueryResponse) {
-//            ids.add(r.getID());
-//        }
-//
-//        return resources;
-//    }
+    public static boolean isBetween(ZonedDateTime dateTimeToCheck, ZonedDateTime startDateTime, ZonedDateTime endDateTime) {
+        if(startDateTime == null || endDateTime == null) return true;
+        return !dateTimeToCheck.isBefore(startDateTime) && !dateTimeToCheck.isAfter(endDateTime);
+    }
+
+    private List<Resource> searchInGraphAndInVector(String title, String description, List<ZonedDateTime> dates, String competition, String magazine, Integer number, List<String> persons, String order) {
+        List<Resource> resources = new ArrayList<>();
+
+        ZonedDateTime firstDate = null, lastDate = null;
+        if(dates != null && !dates.isEmpty()){
+            firstDate = dates.get(0);
+            lastDate = dates.get(0);
+            if(dates.size() > 1) {
+                for (int i = 1; i < dates.size(); i++) {
+                    if (dates.get(i).isBefore(firstDate))
+                        firstDate = dates.get(i);
+                    else if (dates.get(i).isAfter(lastDate))
+                        lastDate = dates.get(i);
+                }
+            }
+        }
+
+        List<ResourceVectorDatabase> vectorQueryResponse = resourceVectorDatabaseService.searchResources(title, description);
+        for(ResourceVectorDatabase r : vectorQueryResponse){
+            Resource resource = ResourceVectorDatabaseToResource.toResource(r);
+            if(dates != null || competition != null || magazine != null || number != null || persons != null) {
+                ResourceNode graphQueryResponse = resourceNodeService.getResourceNodeById(r.getID());
+                ResourceNodeToResource.completeResource(resource, graphQueryResponse);
+
+                boolean add = true;
+                if (!resource.getProperties().isEmpty()) {
+                    for (Property p : resource.getProperties()) {
+                        if(dates != null && p instanceof Date){
+                            if(!isBetween(((Date) p).getDate(), firstDate, lastDate)){
+                                add = false;
+                            }
+                        }
+                        if(competition != null && p instanceof Competition){
+                            if(!((((Competition) p).getName()).equals(competition))){
+                                add = false;
+                            }
+                        }
+                        if(magazine != null && p instanceof MagazineIssue){
+                            if(!(((MagazineIssue) p).getTitle()).equals(magazine)){
+                                add = false;
+                            } else {
+                                if(number != null && ((MagazineIssue) p).getNumber() != number){
+                                    add = false;
+                                }
+                            }
+                        }
+                        if(persons != null && p instanceof Persons){
+                            List<String> personsNames = new ArrayList<>();
+                            for(Person person : ((Persons) p).getPersons()){
+                                personsNames.add(person.getName());
+                            }
+                            for(String person : persons){
+                                if(!personsNames.contains(person)){
+                                    add = false;
+                                }
+                            }
+                        }
+                    }
+
+                    //TODO: Fix this mess, it's just temporary
+                    Map<String, Boolean> contains = new HashMap<>();
+                    for (Property p : resource.getProperties()){
+                        if(p instanceof Competition){
+                            contains.put("competition", true);
+                        }
+                        if(p instanceof Date){
+                            contains.put("date", true);
+                        }
+                        if(p instanceof MagazineIssue){
+                            contains.put("magazineTitle", true);
+                            if(number != null){
+                                contains.put("magazineNumber", true);
+                            }
+                        }
+                        if(p instanceof Persons){
+                            contains.put("persons", true);
+                        }
+                    }
+                    if(competition != null && !contains.containsKey("competition")){
+                        add = false;
+                    }
+                    if(dates != null && !contains.containsKey("date")){
+                        add = false;
+                    }
+                    if(magazine != null && !contains.containsKey("magazineTitle")){
+                        add = false;
+                    }
+                    if(number != null && !contains.containsKey("magazineNumber")){
+                        add = false;
+                    }
+                    if(persons != null && !contains.containsKey("persons")){
+                        add = false;
+                    }
+                }
+
+
+
+                if(add) resources.add(resource);
+            }
+            else{
+                resources.add(resource);
+            }
+        }
+
+        return resources;
+    }
+
 
     private List<Resource> searchOnlyInGraph(List<ZonedDateTime> dates, String competition, String magazine, Integer number, List<String> persons, String order) {
         List<Resource> resources = new ArrayList<>();
@@ -181,8 +265,32 @@ public class ResourceRepository {
         return resources;
     }
 
-    public Resource getResourceByImageSimilarity(String image) {
-        return blank();
+    public ResourceImageSimilaritySearchResponseDTO getResourceByImageSimilarity(String image, int limit) {
+        List<Resource> similar = new ArrayList<>(), lessSimilar = new ArrayList<>();
+
+        ResourceVectorDatabaseImageSearchListsResponse vectorQueryResponse = resourceVectorDatabaseService.searchResourcesByImage(image, limit);
+
+        List<ResourceVectorDatabase> similarVectorResponse = vectorQueryResponse.getSimilar() , lessSimilarVectorResponse = vectorQueryResponse.getLessSimilar();
+        for(ResourceVectorDatabase r : similarVectorResponse){
+            Resource resource = ResourceVectorDatabaseToResource.toResource(r);
+
+            ResourceNode graphQueryResponse = resourceNodeService.getResourceNodeById(r.getID());
+            ResourceNodeToResource.completeResource(resource, graphQueryResponse);
+
+            similar.add(resource);
+        }
+
+        for(ResourceVectorDatabase r : lessSimilarVectorResponse){
+            Resource resource = ResourceVectorDatabaseToResource.toResource(r);
+
+            ResourceNode graphQueryResponse = resourceNodeService.getResourceNodeById(r.getID());
+            ResourceNodeToResource.completeResource(resource, graphQueryResponse);
+
+            lessSimilar.add(resource);
+        }
+
+        return new ResourceImageSimilaritySearchResponseDTO(similar, lessSimilar);
+
     }
 
     public Resource insertResource(String creator, Resource newResource, ResourceRequestDTO resourceRequestDTO){
@@ -243,7 +351,7 @@ public class ResourceRepository {
     public List<String> getResourcesMagazinesNames(String magazine) {
         List<String> magazines = resourceNodeService.getResourcesMagazinesNames();
         List<String> filtered = magazines;
-        if(magazine != null) filtered = magazines.stream().filter(c -> c.contains(magazine)).toList();
+        if(magazine != null) filtered = magazines.stream().filter(c -> c.toLowerCase().contains(magazine.toLowerCase())).toList();
         return filtered;
     }
 

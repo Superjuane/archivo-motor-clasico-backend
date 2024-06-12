@@ -28,7 +28,7 @@ public class CollectionsController {
     }
 
     @GetMapping("/collections/{id}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Collection> getCols(@PathVariable String id){
         if(id == null)
             return new ResponseEntity<>(collectionService.blank(), HttpStatus.BAD_REQUEST);
@@ -45,7 +45,7 @@ public class CollectionsController {
     }
 
     @GetMapping("/collections")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<List<Collection>> getAllCollectionsByUser(@RequestParam(name = "user", required = true) String username){
         List<Collection> result;
         try {
@@ -61,7 +61,7 @@ public class CollectionsController {
     }
 
     @PostMapping("/collections")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Collection> createCollection(@RequestBody CollectionCreateDTO collectionDTO){
         //TODO:fix 4 return statements!!
         if(collectionDTO.getTitle() == null ){
@@ -80,7 +80,7 @@ public class CollectionsController {
     }
 
     @PutMapping("/collections/{collectionId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> updateCollection(@PathVariable String collectionId, @RequestBody CollectionUpdateDTO collectionDTO){
         Collection result;
         if(collectionId == null)
@@ -102,7 +102,7 @@ public class CollectionsController {
     }
 
     @PostMapping("/collections/{collectionId}/resources/{resourceId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> updateCollection(@PathVariable String collectionId, @PathVariable String resourceId){
         Collection result;
         if(collectionId == null)
@@ -124,7 +124,7 @@ public class CollectionsController {
     }
 
     @DeleteMapping("/collections/{collectionId}/resources/{resourceId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> deleteResourceFromCollection(@PathVariable String collectionId, @PathVariable String resourceId){
         Collection result;
         Map<String, String> body = new HashMap<>();
@@ -152,7 +152,7 @@ public class CollectionsController {
     }
 
     @DeleteMapping("/collections/{collectionId}")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<Object> deleteCollection(@PathVariable String collectionId){
         Boolean result;
         Map<String, String> body = new HashMap<>();

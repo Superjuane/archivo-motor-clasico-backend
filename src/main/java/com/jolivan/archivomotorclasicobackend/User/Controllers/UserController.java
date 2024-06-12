@@ -40,25 +40,25 @@ public class UserController {
     private Environment env;
 
     @GetMapping("/user")
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     public ResponseEntity<UserResponseDTO> getUsers(@RequestParam(name="name", required = true) String username) {
         return new ResponseEntity<>(this.service.findUserByUsernameRestricted(username), HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     @PostMapping("/user")
     public ResponseEntity<UserResponseDTO> createUser(final @Valid @RequestBody UserRequestDTO rq) {
         return new ResponseEntity<>(this.service.create(rq), HttpStatus.CREATED);
     }
 
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     @PostMapping("/user/authenticate")
     public ResponseEntity<UserResponseDTO> authenticateUser(final @Valid @RequestBody UserRequestDTO rq) {
         UserResponseDTO response = this.service.authenticate(rq);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     @PostMapping("/user/forgotpassword")
     public ResponseEntity<Object> forgotPassword(@RequestParam("email") final String email) {
         final MyUser user = service.findUserByEmail(email);
@@ -85,7 +85,7 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @CrossOrigin(origins = URL)
+    @CrossOrigin/*(origins = URL)*/
     @PostMapping("/user/resetpassword")
     public ResponseEntity<Object> resetPassword(@RequestBody final NewPasswordDTO dto) {
         //TODO: migrate all logic to other layers (i.e. service)
