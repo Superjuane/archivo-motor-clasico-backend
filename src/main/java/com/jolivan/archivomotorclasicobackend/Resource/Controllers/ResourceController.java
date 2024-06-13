@@ -26,11 +26,11 @@ public class ResourceController {
 //    private static final String URL = ;
     
 //    private static final String[] URLS = new String[] {"http://localhost:3000", "https://archivo-motor-clasico-frontend-git-master-superjuanes-projects.vercel.app"};
-    private final ResourceRepository resourceRepository;
 
+    private final ResourceService resourceRepository;
     @Autowired
-    public ResourceController(ResourceRepository resourceRepository) {
-        this.resourceRepository = resourceRepository;
+    public ResourceController(ResourceService resourceService) {
+        this.resourceRepository = resourceService;
     }
 
     @CrossOrigin/*(origins = URLS)*/

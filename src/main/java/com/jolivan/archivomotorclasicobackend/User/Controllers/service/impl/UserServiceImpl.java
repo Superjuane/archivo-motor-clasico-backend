@@ -11,6 +11,8 @@ import com.jolivan.archivomotorclasicobackend.User.Entities.UserResponseDTO;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Controllers.UserNodeService;
 import com.jolivan.archivomotorclasicobackend.User.GraphDB.Entities.UserNode;
 import com.jolivan.archivomotorclasicobackend.User.UsUtils.UserEncoder;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,11 +33,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDTO create(final UserRequestDTO rq) {
         final MyUser newUser = UserEncoder.toEntity(rq);
+
+        if(!isValidEmailAddress(rq.getEmail())) throw new UserNotAuthenticatedException("Email not valid");
+
         if(newUser.getUsername().equals("admin")){newUser.setRole("ROLE_ADMIN");}else{newUser.setRole("ROLE_USER");}
 
-        final MyUser existingUser = repository.findByUsername(newUser.getUsername());
+        MyUser existingUser = repository.findByUsername(newUser.getUsername());
         if(existingUser != null){
-            throw new DataIntegrityViolationException("User already exists");
+            throw new UserNotAuthenticatedException("User already registered");
+        }
+
+        existingUser = repository.findByEmail(newUser.getEmail());
+        if(existingUser != null){
+            throw new UserNotAuthenticatedException("Email already registered");
         }
 
         //save user in PostgreSQL
@@ -112,4 +122,15 @@ public class UserServiceImpl implements UserService {
         passwordTokenRepository.deleteByUserId(id);
     }
 
+
+    public static boolean isValidEmailAddress(String email) {
+        boolean result = true;
+        try {
+            InternetAddress emailAddr = new InternetAddress(email);
+            emailAddr.validate();
+        } catch (AddressException ex) {
+            result = false;
+        }
+        return result;
+    }
 }

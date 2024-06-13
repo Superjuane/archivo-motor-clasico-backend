@@ -259,7 +259,7 @@ public class ResourceVectorDatabaseRepositoryWeaviateAdapter implements Resource
         properties.put("title", data.get("title"));
         properties.put("description", data.get("description"));
         if(data.get("image").toString().startsWith("data:image/")){
-            String procesedImageString = data.get("image").toString().replace("data:image/jpeg;base64,", "").replace("data:image/png;base64,", "");
+            String procesedImageString = data.get("image").toString().replace("data:image/jpeg;base64,", "").replace("data:image/png;base64,", "").replace("data:image/gif;base64,", "");
             data.put("image", procesedImageString);
         }
         properties.put("image", data.get("image"));

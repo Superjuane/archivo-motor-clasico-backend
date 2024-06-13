@@ -17,6 +17,9 @@ public class UserExceptionHandler {
         response.put("message", e.getMessage());
         if(e.getMessage().equals("User not registered")) response.put("problem","unregistered");
         if(e.getMessage().equals("Wrong password")) response.put("problem","wrongPassword");
+        if(e.getMessage().equals("User already registered")) response.put("problem","userAlreadyRegistered");
+        if(e.getMessage().equals("Email already registered")) response.put("problem","emailAlreadyRegistered");
+        if(e.getMessage().equals("Email not valid")) response.put("problem","emailNotValid");
         return new ResponseEntity<>(response, status);
     }
 }

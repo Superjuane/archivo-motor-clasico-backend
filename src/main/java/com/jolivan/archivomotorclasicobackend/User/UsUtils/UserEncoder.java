@@ -16,6 +16,7 @@ public class UserEncoder {
     public static MyUser toEntity(final UserRequestDTO dto) {
         return MyUser.builder()
                 .username(dto.getUsername())
+                .email(dto.getEmail())
                 .password(encoder.encode(dto.getPassword()))
                 .build();
     }
