@@ -22,11 +22,6 @@ import static com.jolivan.archivomotorclasicobackend.Utils.LoggingUtils.*;
 @RestController
 public class ResourceController {
 
-//    private static final String URL_develop = ;
-//    private static final String URL = ;
-    
-//    private static final String[] URLS = new String[] {"http://localhost:3000", "https://archivo-motor-clasico-frontend-git-master-superjuanes-projects.vercel.app"};
-
     private final ResourceService resourceRepository;
     @Autowired
     public ResourceController(ResourceService resourceService) {
