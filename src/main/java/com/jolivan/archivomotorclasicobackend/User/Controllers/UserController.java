@@ -81,8 +81,9 @@ public class UserController {
             System.out.println(token);
             System.out.println("Sending email for token: http://localhost:3000/resetpassword?token="+token);
             mailSender.send(mail);
+            return ResponseEntity.ok().build();
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @CrossOrigin/*(origins = URL)*/
